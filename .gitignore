@@ -19,6 +19,7 @@ yarn-error.log*
 # =========================
 client/node_modules/
 client/.expo/
+client/.gitignore/
 client/.vscode/
 client/.expo-shared/
 client/dist/
