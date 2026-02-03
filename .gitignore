@@ -1,0 +1,55 @@
+# =========================
+# General
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.local
+.env.development
+.env.production
+
+# =========================
+# Expo / React Native
+# =========================
+client/node_modules/
+client/.expo/
+client/.vscode/
+client/.expo-shared/
+client/dist/
+client/web-build/
+client/android/
+client/ios/
+client/.env*
+
+# =========================
+# Backend
+# =========================
+server/node_modules/
+server/dist/
+server/build/
+server/.env*
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# Testing / Coverage
+# =========================
+coverage/
