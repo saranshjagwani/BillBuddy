@@ -1,16 +1,14 @@
-import React from 'react'
+import { View, Text } from "react-native";
+import { useTheme } from "@react-navigation/native";
 
-console.log("HomeScreen rendered");
+export default function HomeScreen() {
+  const { colors } = useTheme();
 
-import { View } from 'react-native';
-import { Text } from 'react-native';
-
-const DomeScreen = () => {
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>DomeScreen</Text>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <Text style={{ color: colors.text }}>
+        Welcome to BillBuddy
+      </Text>
     </View>
-  )
+  );
 }
-
-export default DomeScreen

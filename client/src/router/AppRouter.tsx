@@ -5,6 +5,7 @@ import HomeScreen from "../screen/HomeScreen";
 import DomeScreen from "../screen/DomeScreen";
 
 
+
 const Stack = createNativeStackNavigator();
 
 export default function AppRouter() {
