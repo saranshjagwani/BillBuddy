@@ -1,7 +1,10 @@
-import { View, Text } from "react-native";
+import { View, Text ,Button } from "react-native";
 import { useTheme } from "@react-navigation/native";
+import { useState } from "react";
+
 
 export default function HomeScreen() {
+  const [loading, setLoading] = useState(true);
   const { colors } = useTheme();
 
   return (

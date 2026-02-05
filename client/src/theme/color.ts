@@ -1,7 +1,7 @@
 // Brand colors (from logo)
 const brandBlue = "#1E63D5";     // main B
 const brandBlueDark = "#1449A8";
-const brandYellow = "#FFD43B";
+const brandYellow = "#FFD137";
 
 // ---------- LIGHT MODE ----------
 export const LightColors = {
@@ -37,7 +37,7 @@ export const DarkColors = {
   // Brand
   primary: "#60A5FA",
   primaryDark: "#2563EB",
-  accent: "#FFD43B",
+  accent: "#FFD137",
 
   // Backgrounds
   background: "#020617",
