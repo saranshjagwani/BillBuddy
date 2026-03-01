@@ -10,7 +10,6 @@ import {
 import { useTheme } from "@react-navigation/native";
 import Svg, { Path } from "react-native-svg";
 
-const { width } = Dimensions.get("window");
 
 /**
  * BillBuddyLoading
@@ -241,7 +240,7 @@ export default function BillBuddyLoading() {
               ]}
             >
               <Image
-                source={require("../../../assets/images/BillBuddyLogo2.png")}
+                source={require("../../../assets/BillBuddyLogo2.png")}
                 style={styles.logo}
                 resizeMode="contain"
               />

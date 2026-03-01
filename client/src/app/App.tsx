@@ -6,11 +6,12 @@
 import { useColorScheme } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider } from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 
 // --- Internal Modules ---
-import AppRouter from "../router/AppRouter";
 import { GlobalLoadingProvider } from "../shared/provider/GlobalLoadingProvider";
 import { DarkTheme, LightTheme } from "../theme/theme";
+import RootNavigator from "../Navigator/RootNavigator";
 
 /**
  * @component App
@@ -31,6 +32,7 @@ export default function App() {
 
   return (
     <>
+    <NavigationContainer>
       {/* CONTEXT PROVIDER: 
           Injects theme variables into the React Navigation context.
           Accessible in child components via useTheme().
@@ -46,10 +48,11 @@ export default function App() {
             The gateway to all screens (Home, Profile, etc.). 
         */}
         <GlobalLoadingProvider >
-        <AppRouter />
+        <RootNavigator />
         </GlobalLoadingProvider>
 
       </ThemeProvider>
+      </NavigationContainer>
     </>
   );
 }

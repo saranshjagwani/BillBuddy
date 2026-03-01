@@ -35,26 +35,26 @@ export const LightColors = {
 // ---------- DARK MODE ----------
 export const DarkColors = {
   // Brand
-  primary: "#60A5FA",
+  primary: "#3B82F6",       // slightly calmer blue
   primaryDark: "#2563EB",
   accent: "#FFD137",
 
-  // Backgrounds
-  background: "#020617",
-  surface: "#020617",
-  card: "#020617",
+  // Background layers
+  background: "#0B1220",    // not pure dark, slightly lifted
+  surface: "#111827",       // card background
+  card: "#1F2937",          // elevated elements (OTP boxes, inputs)
 
   // Text
-  textPrimary: "#F8FAFC",
-  textSecondary: "#94A3B8",
-  textInverse: "#020617",
+  textPrimary: "#F9FAFB",
+  textSecondary: "#9CA3AF",
+  textInverse: "#0B1220",
 
   // Borders
-  border: "#1E293B",
+  border: "rgba(255,255,255,0.12)",
 
   // Status
   success: "#22C55E",
-  warning: "#FACC15",
+  warning: "#FBBF24",
   error: "#F87171",
 
   // Icons

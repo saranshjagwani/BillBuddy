@@ -5,10 +5,9 @@ import HomeScreen from "../screen/HomeScreen";
 import DomeScreen from "../screen/DomeScreen";
 
 
-
 const Stack = createNativeStackNavigator();
 
-export default function AppRouter() {
+export default function AppNavigator() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="Dome" component={DomeScreen} />

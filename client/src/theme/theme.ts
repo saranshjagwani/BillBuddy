@@ -25,7 +25,6 @@ export const DarkTheme = {
   ...NavDarkTheme,
   colors: {
     ...NavDarkTheme.colors,
-
     primary: DarkColors.primary,
     background: DarkColors.background,
     card: DarkColors.card,

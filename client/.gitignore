@@ -45,3 +45,13 @@ app-example
 .gitignore/
 .vscode/
 .package-lock.json/
+
+
+android/
+ios/
+
+.google-services.json
+
+assets/
+
+client/.gitignore
