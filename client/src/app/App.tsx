@@ -2,7 +2,6 @@
 // src/app/App.tsx
 // ==========================================
 
-
 import { useColorScheme } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider } from "@react-navigation/native";
@@ -12,6 +11,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { GlobalLoadingProvider } from "../shared/provider/GlobalLoadingProvider";
 import { DarkTheme, LightTheme } from "../theme/theme";
 import RootNavigator from "../Navigator/RootNavigator";
+import { AppThemeProvider } from "../shared/provider/AppThemeProvider";
 
 /**
  * @component App
@@ -27,32 +27,28 @@ export default function App() {
 
   // 2. CONSTANTS: Logic for theme selection
   const isDarkMode = colorScheme === "dark";
-  const activeTheme = isDarkMode ? DarkTheme : LightTheme;
   const statusBarStyle = isDarkMode ? "light" : "dark";
 
   return (
     <>
-    <NavigationContainer>
-      {/* CONTEXT PROVIDER: 
-          Injects theme variables into the React Navigation context.
-          Accessible in child components via useTheme().
-      */}
-      <ThemeProvider value={activeTheme}>
-        
-        {/* STATUS BAR: 
+      {/* THEME PROVIDER: 
+              Provides theme context to the entire app, allowing for dynamic theming. 
+          */}
+      <AppThemeProvider>
+        <NavigationContainer>
+          {/* STATUS BAR: 
             Controls the clock, battery, and signal icons at the top of the screen. 
         */}
-        <StatusBar style={statusBarStyle} />
+          <StatusBar style={statusBarStyle} />
 
-        {/* ROUTING: 
+          {/* ROUTING: 
             The gateway to all screens (Home, Profile, etc.). 
         */}
-        <GlobalLoadingProvider >
-        <RootNavigator />
-        </GlobalLoadingProvider>
-
-      </ThemeProvider>
-      </NavigationContainer>
+          <GlobalLoadingProvider>
+            <RootNavigator />
+          </GlobalLoadingProvider>
+        </NavigationContainer>
+      </AppThemeProvider>
     </>
   );
 }

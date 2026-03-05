@@ -35,6 +35,7 @@ server/node_modules/
 server/dist/
 server/build/
 server/.env*
+server/.package-lock.json
 
 # =========================
 # Logs

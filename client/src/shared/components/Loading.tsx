@@ -175,6 +175,7 @@ export default function BillBuddyLoading() {
   );
 
   return (
+    <View style={styles.overlay}>
     <Animated.View
       style={[
         styles.container,
@@ -348,11 +349,22 @@ export default function BillBuddyLoading() {
         </View>
       </View>
     </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+    elevation: 9999, // Android
+  },
   container: {
+    zIndex: 1000,
+    elevation: 1000,
     flex: 1,
     justifyContent: "center",
     alignItems: "center",

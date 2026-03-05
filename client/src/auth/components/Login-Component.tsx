@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -10,75 +10,31 @@ import {
   Platform,
   ScrollView,
   Animated,
-  useColorScheme,
+  Image,
 } from "react-native";
-import { useTheme } from "@react-navigation/native";
-import type { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import { sendOtp } from "../services/auth.service";
-import { Image } from "react-native";
-import { LightColors, DarkColors } from "../../theme/color";
+import type { LoginComponentProps } from "../types/Login-Component.types";
+import { useAppTheme } from "../../shared/provider/AppThemeProvider";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface LoginComponentProps {
-  phoneNumber: string;
-  isFocused: boolean;
-  loading: boolean;
-  error: string | null;
-  setIsFocused: (v: boolean) => void;
-  setLoading: (v: boolean) => void;
-  setError: (v: string | null) => void;
-  setPhoneNumber: (v: string) => void;
-  onOtpSent: (confirmation: FirebaseAuthTypes.ConfirmationResult) => void;
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function LoginComponent({
   phoneNumber,
+  setPhoneNumber,
   isFocused,
   loading,
   error,
+  isReady,
   setIsFocused,
-  setLoading,
-  setError,
-  setPhoneNumber,
-  onOtpSent,
+  handleContinue,
 }: LoginComponentProps) {
-  const scheme = useColorScheme();
-  const { colors } = useTheme();
-  const C = scheme === "dark" ? DarkColors : LightColors;
-  const isDark = scheme === "dark";
+  const { theme } = useAppTheme();
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 480, useNativeDriver: true }),
-      Animated.spring(slideAnim, { toValue: 0, tension: 65, friction: 13, useNativeDriver: true }),
-    ]).start();
-  }, []);
-
-  const isReady = phoneNumber.length === 10 && !loading;
-
-  async function handleContinue() {
-    if (!isReady) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const confirmation = await sendOtp(phoneNumber);
-      onOtpSent(confirmation);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to send OTP. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: C.background }}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
@@ -86,21 +42,16 @@ export function LoginComponent({
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View
-          style={[
-            styles.inner,
-            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-          ]}
-        >
+        <Animated.View style={[styles.inner]}>
           {/* ── Logo ── */}
           <View style={styles.logoWrap}>
             <View
               style={[
                 styles.logoBox,
                 {
-                  backgroundColor: C.accent ?? C.card,
-                  borderColor: isDark ? C.border : "transparent",
-                  shadowColor: isDark ? "#000" : colors.primary,
+                  backgroundColor: "#FFD137",
+                  borderColor: "#FFD137",
+                  shadowColor: "#FFD137",
                 },
               ]}
             >
@@ -113,8 +64,15 @@ export function LoginComponent({
           </View>
 
           {/* ── Heading ── */}
-          <Text style={[styles.title, { color: C.textPrimary }]}>Welcome to BillBuddy</Text>
-          <Text style={[styles.subtitle, { color: C.textSecondary ?? "#888" }]}>
+          <Text style={[styles.title, { color: theme.colors.textPrimary }]}>
+            Welcome to BillBuddy
+          </Text>
+          <Text
+            style={[
+              styles.subtitle,
+              { color: theme.colors.textSecondary ?? "#888" },
+            ]}
+          >
             Your smart shop assistant
           </Text>
 
@@ -123,36 +81,52 @@ export function LoginComponent({
             style={[
               styles.card,
               {
-                backgroundColor: C.card,
-                borderColor: C.border,
-                shadowColor: isDark ? "#000" : "#00000012",
+                backgroundColor: theme.colors.card,
+                borderColor: theme.colors.border,
+                shadowColor: theme.colors.primary,
               },
             ]}
           >
-            <Text style={[styles.label, { color: C.textPrimary }]}>Phone number</Text>
+            <Text style={[styles.label, { color: theme.colors.textPrimary }]}>
+              Phone number
+            </Text>
 
             {/* Input */}
             <View
               style={[
                 styles.inputRow,
                 {
-                  backgroundColor: isDark ? (C.surface ?? C.background) : "#F5F5F5",
-                  borderColor: isFocused ? colors.primary : C.border,
+                  backgroundColor:
+                    theme.colors.surface ?? theme.colors.background,
+                  borderColor: isFocused
+                    ? theme.colors.primary
+                    : theme.colors.border,
                 },
               ]}
             >
-              <Text style={[styles.dialCode, { color: C.textPrimary }]}>🇮🇳  +91</Text>
-              <View style={[styles.sep, { backgroundColor: C.border }]} />
+              <Text
+                style={[styles.dialCode, { color: theme.colors.textPrimary }]}
+              >
+                {" "}
+               +91
+              </Text>
+              <View
+                style={[styles.sep, { backgroundColor: theme.colors.border }]}
+              />
               <TextInput
-                style={[styles.input, { color: C.textPrimary }]}
+                style={[styles.input, { color: theme.colors.textPrimary }]}
                 value={phoneNumber}
-                onChangeText={(v) => setPhoneNumber(v.replace(/\D/g, "").slice(0, 10))}
+                onChangeText={(v) =>
+                  setPhoneNumber(v.replace(/\D/g, "").slice(0, 10))
+                }
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 keyboardType="number-pad"
+                textContentType="telephoneNumber"
+                autoComplete="tel"
                 maxLength={10}
                 placeholder="Enter 10-digit number"
-                placeholderTextColor={isDark ? "#555" : "#BABABA"}
+                placeholderTextColor={"#BABABA"}
                 editable={!loading}
                 returnKeyType="done"
                 onSubmitEditing={isReady ? handleContinue : undefined}
@@ -161,9 +135,21 @@ export function LoginComponent({
 
             {/* Hint / Error */}
             {error ? (
-              <Text style={[styles.error, { color: C.error ?? "#D04B3A" }]}>{error}</Text>
+              <Text
+                style={[
+                  styles.error,
+                  { color: theme.colors.error ?? "#D04B3A" },
+                ]}
+              >
+                {error}
+              </Text>
             ) : (
-              <Text style={[styles.hint, { color: C.textSecondary ?? "#888" }]}>
+              <Text
+                style={[
+                  styles.hint,
+                  { color: theme.colors.textSecondary ?? "#888" },
+                ]}
+              >
                 We'll send a 6-digit OTP to this number
               </Text>
             )}
@@ -172,7 +158,7 @@ export function LoginComponent({
             <TouchableOpacity
               style={[
                 styles.btn,
-                { backgroundColor: colors.primary },
+                { backgroundColor: theme.colors.primary },
                 !isReady && styles.btnDisabled,
               ]}
               onPress={handleContinue}
@@ -192,15 +178,32 @@ export function LoginComponent({
 
           {/* ── Footer ── */}
           <View style={styles.footer}>
-            <Text style={[styles.footerText, { color: C.textSecondary ?? "#888" }]}>
+            <Text
+              style={[
+                styles.footerText,
+                { color: theme.colors.textSecondary ?? "#888" },
+              ]}
+            >
               By continuing, you agree to our{" "}
             </Text>
             <TouchableOpacity activeOpacity={0.7}>
-              <Text style={[styles.link, { color: colors.primary }]}>Terms</Text>
+              <Text style={[styles.link, { color: theme.colors.primary }]}>
+                Terms
+              </Text>
             </TouchableOpacity>
-            <Text style={[styles.footerText, { color: C.textSecondary ?? "#888" }]}> & </Text>
+            <Text
+              style={[
+                styles.footerText,
+                { color: theme.colors.textSecondary ?? "#888" },
+              ]}
+            >
+              {" "}
+              &{" "}
+            </Text>
             <TouchableOpacity activeOpacity={0.7}>
-              <Text style={[styles.link, { color: colors.primary }]}>Privacy Policy</Text>
+              <Text style={[styles.link, { color: theme.colors.primary }]}>
+                Privacy Policy
+              </Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -239,7 +242,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 18,
-    elevation: 6,
   },
   logo: {
     width: 110,
@@ -268,7 +270,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 10,
-    elevation: 3,
     gap: 12,
     marginBottom: 20,
   },

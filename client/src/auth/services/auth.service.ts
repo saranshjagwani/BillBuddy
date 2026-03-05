@@ -1,18 +1,23 @@
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import { getApp } from "@react-native-firebase/app";
+import {
+  getAuth,
+  signInWithPhoneNumber,
+} from "@react-native-firebase/auth";
+import type { FirebaseAuthTypes } from "@react-native-firebase/auth";
+
+const auth = getAuth(getApp());
 
 /**
- * Sends OTP to the given phone number with +91 country code.
- * Returns a ConfirmationResult to be used for OTP verification.
+ * Send OTP
  */
 export async function sendOtp(
   phoneNumber: string
 ): Promise<FirebaseAuthTypes.ConfirmationResult> {
-  return await auth().signInWithPhoneNumber(`+91${phoneNumber}`);
+  return await signInWithPhoneNumber(auth, `+91${phoneNumber}`);
 }
 
 /**
- * Confirms the OTP entered by the user.
- * Returns the signed-in user on success.
+ * Confirm OTP
  */
 export async function confirmOtp(
   confirmation: FirebaseAuthTypes.ConfirmationResult,

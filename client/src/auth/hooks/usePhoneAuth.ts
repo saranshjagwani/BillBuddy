@@ -1,75 +1,73 @@
-// import type { ChangeEvent, KeyboardEvent} from "react";
-// import { useState } from "react";
-// import {  sendOtp } from "../services/auth.service";
+import { useState, useCallback } from "react";
+import { sendOtp } from "../services/auth.service";
+import { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import {useGlobalLoading} from "../../shared/provider/GlobalLoadingProvider";
 
+export function useLogin() {
 
+  const {show,hide } = useGlobalLoading();
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
+    const [confirmation, setConfirmation] =
+      useState<FirebaseAuthTypes.ConfirmationResult | null>(null);
 
-// type Step = "PHONE" | "OTP";
-
-// export function usePhoneAuth() {
-//   const [phoneNumber, setPhoneNumber] = useState("");
-//   const [isFocused, setIsFocused] = useState(false);
-//   const [isCaptcha, setIsCaptcha] = useState(false);
-//   const [step, setStep] = useState<Step>("PHONE");
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState("");
-
-//   /**
-//    * WHY:
-//    * Centralizes OTP send logic so UI never handles side-effects.
-//    * Prevents duplicated logic across screens.
-//    */
   
-//   const handleContinue = async () => {
-//     try {
-//      setLoading(true);
 
-     
-//       await sendOtp(phoneNumber);
-//       setStep("OTP");
-//     } catch (err) {
-//       console.error(err);
-//       setIsCaptcha(true);
-//       setPhoneNumber("");
-//       setError("Something went wrong. Please try again.");
+  const isReady = phoneNumber.length === 10 && !loading;
+  
 
-//       setTimeout(() => setError(""), 2000);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
 
-//   /**
-//    * WHY:
-//    * Keeps input sanitization out of UI.
-//    * Guarantees phone is always valid everywhere.
-//    */
-//  const handlePhoneChange = (value: string) => {
-//   setPhoneNumber(value.replace(/\D/g, "").slice(0, 10));
-// };
 
-//   const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
-//     if (e.key === "Enter") {
-//       handleContinue();
-//     }
-//   };
+  const handleContinue = useCallback(async () => {
+  if (loading) return;
 
-//   return {
-//     // state
-//     phoneNumber,
-//     isFocused,
-//     step,
-//     loading,
-//     error,
+  if (!isReady) {
+    setError("Please enter a valid 10-digit phone number.");
+    return;
+  }
 
-//     // setters (UI-only concerns)
-//     setIsFocused,
-//     setStep,
+  setLoading(true);
+  setError(null);
 
-//     // actions
-//     handleContinue,
-//     handlePhoneChange,
-//     handleKeyPress,
-//   };
-// }
+  // start delayed loader
+  const loaderTimer = setTimeout(() => {
+    show();
+  }, 2000);
 
+  try {
+    console.log("Attempting to send OTP to:", phoneNumber);
+
+    const confirmation = await sendOtp(phoneNumber);
+
+    setConfirmation(confirmation);
+
+  } catch (err: any) {
+    setError(
+      err?.message ||
+      "We couldn't send the OTP. Please check your connection and try again."
+    );
+  } finally {
+    clearTimeout(loaderTimer); // ⭐ cancel timer
+    setLoading(false);
+    hide();
+  }
+
+}, [loading, phoneNumber]);
+
+  return {
+    phoneNumber,
+    setPhoneNumber,
+    isFocused,
+    setIsFocused,
+    loading,
+    setLoading,
+    error,
+    setError,
+    isReady,
+    handleContinue,
+    confirmation,
+     setConfirmation,
+  };
+}

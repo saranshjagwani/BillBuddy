@@ -1,192 +1,114 @@
-// import { useState, useRef, useEffect } from "react";
-// import { TextInput, NativeSyntheticEvent, TextInputKeyPressEventData } from "react-native";
-// import {  sendOtp, verifyOtp } from "../services/auth.service";
-// import { useNavigation } from "@react-navigation/native";
-// import { usePhoneAuth } from "./usePhoneAuth";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { TextInput } from "react-native";
+import { confirmOtp } from "../services/auth.service";
+import type { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import {useGlobalLoading} from "../../shared/provider/GlobalLoadingProvider";
 
-// /**
-//  * useOtpAuth
-//  *
-//  * Owns OTP verification state + behavior for React Native.
-//  *
-//  * WHY this hook exists:
-//  * - Keep OTP logic centralized
-//  * - Keep UI simple
-//  * - Prevent focus chaos
-//  * - Auto-submit when complete
-//  */
-// export function useOtpAuth() {
-//   const { phoneNumber } = usePhoneAuth();
-//   const navigation = useNavigation<any>();
+const OTP_LENGTH = 6;
+const RESEND_SECONDS = 30;
 
-//   /**
-//    * OTP stored as array for:
-//    * - Per digit control
-//    * - Focus management
-//    * - Clean paste handling
-//    */
-//   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+export default function useOtp(
+  confirmation: FirebaseAuthTypes.ConfirmationResult,
+  onSuccess: (user: FirebaseAuthTypes.User) => void,
+  onBack: () => void
+) {
+  const {show,hide } = useGlobalLoading();
+  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resendTimer, setResendTimer] = useState(RESEND_SECONDS);
 
-//   const [loading, setLoading] = useState<boolean>(false);
-//   const [error, setError] = useState<string>("");
+  const inputRefs = useRef<(TextInput | null)[]>([]);
 
-//   /**
-//    * Resend countdown
-//    * Keeps user from spamming OTP
-//    */
-//   const [resendTimer, setResendTimer] = useState<number>(30);
+  // Timer
+  useEffect(() => {
+    if (resendTimer <= 0) return;
 
-//   /**
-//    * React Native TextInput refs
-//    */
-//   const inputRefs = useRef<Array<TextInput | null>>([]);
+    const id = setInterval(() => {
+      setResendTimer((t) => t - 1);
+    }, 1000);
 
-//   /**
-//    * Countdown effect
-//    * Designed simple to avoid re-render storms
-//    */
-//   useEffect(() => {
-//     if (resendTimer <= 0) return;
+    return () => clearInterval(id);
+  }, [resendTimer]);
 
-//     const timer = setTimeout(() => {
-//       setResendTimer((prev) => prev - 1);
-//     }, 1000);
+  // Verify when OTP complete
+  useEffect(() => {
+    if (otp.every((d) => d !== "")) {
+      handleVerify(otp.join(""));
+    }
+  }, [otp]);
 
-//     return () => clearTimeout(timer);
-//   }, [resendTimer]);
+  const onDigitChange = (index: number, value: string) => {
+    const cleaned = value.replace(/\D/g, "").slice(-1);
 
-//   /**
-//    * Setup invisible reCAPTCHA
-//    * Required before OTP send/verify
-//    *
-//    * ⚠️ Assumes native-safe implementation
-//    */
-//   /**
-//    * Auto verify when 6 digits complete
-//    * Zero extra confirmation (Constitution aligned)
-//    */
-//   useEffect(() => {
-//     const otpString = otp.join("");
-//     if (otpString.length === 6 && !loading) {
-//       handleVerify(otpString);
-//     }
-//   }, [otp]);
+    const updated = [...otp];
+    updated[index] = cleaned;
 
-//   /**
-//    * OTP Verification
-//    *
-//    * Why:
-//    * - Centralize verification
-//    * - Prevent double submit
-//    * - Route based on shop existence
-//    */
-//   const handleVerify = async (otpString: string) => {
-//     try {
-//       setLoading(true);
-//       setError("");
+    setOtp(updated);
 
-//       const user = await verifyOtp(otpString);
+    if (cleaned && index < OTP_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
 
-//       navigation.replace("HomeScreen");
-//     } catch (err) {
-//       /**
-//        * Reset OTP fully to prevent partial state bugs
-//        */
-//       setError("Invalid OTP. Please try again.");
-//       setOtp(["", "", "", "", "", ""]);
-//       inputRefs.current[0]?.focus();
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+  const onKeyPress = (index: number, key: string) => {
+    if (key === "Backspace") {
+      const updated = [...otp];
 
-//   /**
-//    * Handle single digit input
-//    *
-//    * WHY:
-//    * - Prevent non-numeric input
-//    * - Auto move forward
-//    */
-//   const handleChange = (index: number, value: string) => {
-//     if (!/^\d?$/.test(value)) return;
+      if (!otp[index] && index > 0) {
+        updated[index - 1] = "";
+        setOtp(updated);
+        inputRefs.current[index - 1]?.focus();
+      } else {
+        updated[index] = "";
+        setOtp(updated);
+      }
+    }
+  };
 
-//     const newOtp = [...otp];
-//     newOtp[index] = value;
-//     setOtp(newOtp);
-//     setError("");
+  const handleVerify = useCallback(
+    async (code: string) => {
+      setLoading(true);
+      show();
+      setError(null);
 
-//     if (value && index < 5) {
-//       inputRefs.current[index + 1]?.focus();
-//     }
-//   };
+      try {
+        const result = await confirmOtp(confirmation, code);
 
-//   /**
-//    * Backspace navigation
-//    *
-//    * WHY:
-//    * - Prevent stuck cursor
-//    * - Mimic native OTP UX
-//    */
-//   const handleKeyPress = (
-//     index: number,
-//     e: NativeSyntheticEvent<TextInputKeyPressEventData>
-//   ) => {
-//     if (e.nativeEvent.key === "Backspace" && !otp[index] && index > 0) {
-//       inputRefs.current[index - 1]?.focus();
-//     }
-//   };
+        if (result?.user) {
+          onSuccess(result.user);
+        } else {
+          throw new Error("OTP verification failed");
+        }
+      } catch {
+        setError("Invalid OTP. Please check and try again.");
 
-//   /**
-//    * React Native Paste Handling
-//    *
-//    * RN doesn’t support ClipboardEvent like web.
-//    * Instead, if user pastes full code into one field,
-//    * we detect multi-digit input and distribute.
-//    */
-//   const handleFullPaste = (value: string) => {
-//     const clean = value.replace(/\D/g, "").slice(0, 6);
+        setOtp(Array(OTP_LENGTH).fill(""));
 
-//     if (clean.length > 1) {
-//       const newOtp = clean.split("").concat(Array(6).fill("")).slice(0, 6);
-//       setOtp(newOtp);
+        setTimeout(() => inputRefs.current[0]?.focus(), 100);
+      } finally {
+        hide();
+        setLoading(false);
+      }
+    },
+    [confirmation, onSuccess]
+  );
 
-//       const lastIndex = Math.min(clean.length - 1, 5);
-//       inputRefs.current[lastIndex]?.focus();
-//     }
-//   };
+  const handleResend = () => {
+    setOtp(Array(OTP_LENGTH).fill(""));
+    setError(null);
+    setResendTimer(RESEND_SECONDS);
+    onBack();
+  };
 
-//   /**
-//    * Resend OTP
-//    *
-//    * WHY:
-//    * - Reset state cleanly
-//    * - Prevent spam
-//    * - Keep UX calm
-//    */
-//   const handleResend = async () => {
-//     if (resendTimer !== 0) return;
-
-//     try {
-//       setResendTimer(30);
-//       setError("");
-//       setOtp(["", "", "", "", "", ""]);
-//       inputRefs.current[0]?.focus();
-
-//       await sendOtp(phoneNumber);
-//     } catch (err) {
-//       setError("Failed to resend. Please try again.");
-//     }
-//   };
-
-//   return {
-//     otp,
-//     loading,
-//     error,
-//     resendTimer,
-//     handleChange,
-//     handleKeyPress,
-//     handleFullPaste,
-//     handleResend,
-//     inputRefs,
-//   };
-// }
+  return {
+    otp,
+    loading,
+    error,
+    resendTimer,
+    inputRefs,
+    onDigitChange,
+    onKeyPress,
+    handleResend,
+  };
+}

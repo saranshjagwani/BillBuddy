@@ -2,26 +2,23 @@ import React, { useState } from "react";
 import type { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import { LoginComponent } from "../components/Login-Component";
 import VerifyOtpPage from "../components/Otp-Verify";
+import { useLogin } from "../hooks/usePhoneAuth";
 
 export default function Login() {
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [confirmation, setConfirmation] =
-    useState<FirebaseAuthTypes.ConfirmationResult | null>(null);
+  const login = useLogin();
+  
 
   function handleSuccess(user: FirebaseAuthTypes.User) {
     console.log("Signed in:", user.uid);
-    // navigate to your app's home screen here
+    navigation.navigate("Home");
   }
 
-  if (confirmation) {
+  if (login.confirmation) {
     return (
       <VerifyOtpPage
-        phoneNumber={phoneNumber}
-        confirmation={confirmation}
-        onBack={() => setConfirmation(null)}
+        phoneNumber={login.phoneNumber}
+        confirmation={login.confirmation}
+        onBack={() => login.setConfirmation(null)}
         onSuccess={handleSuccess}
       />
     );
@@ -29,15 +26,14 @@ export default function Login() {
 
   return (
     <LoginComponent
-      phoneNumber={phoneNumber}
-      isFocused={isFocused}
-      loading={loading}
-      error={error}
-      setPhoneNumber={setPhoneNumber}
-      setIsFocused={setIsFocused}
-      setLoading={setLoading}
-      setError={setError}
-      onOtpSent={setConfirmation}
-    />
+  phoneNumber={login.phoneNumber}
+  isFocused={login.isFocused}
+  isReady={login.isReady}
+  loading={login.loading}
+  error={login.error}
+  setPhoneNumber={login.setPhoneNumber}
+  setIsFocused={login.setIsFocused}
+  handleContinue={login.handleContinue}
+/>
   );
 }
