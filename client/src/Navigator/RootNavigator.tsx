@@ -1,29 +1,38 @@
-import { useEffect, useState } from "react";
 import AuthNavigator from "./AuthNavigator";
 import AppNavigator from "./AppNavigator";
+import ShopNavigator from "./ShopNavigator";
+
 import useAuthState from "../auth/hooks/useAuth";
 import useShop from "../shop-setup/hooks/useShop";
-import {useGlobalLoading} from "../shared//provider/GlobalLoadingProvider";
-import ShopSetupScreen from "../shop-setup/pages/ShopSetup";
 
+import { useGlobalLoading } from "../shared/provider/GlobalLoadingProvider";
 
 export default function RootNavigator() {
   const { user, initializing } = useAuthState();
-  const { show, hide } = useGlobalLoading();
   const { shop, loading: shopLoading } = useShop();
 
-
+  const { show, hide } = useGlobalLoading();
 
   const isAuthenticated = !!user;
-  
 
+  // Handle loading state
+  if (initializing || shopLoading) {
+    show();
+    return null;
+  } else {
+    hide();
+  }
+
+  // Not logged in
   if (!isAuthenticated) {
     return <AuthNavigator />;
   }
-  else if (isAuthenticated && !shop) {
-    return <ShopSetupScreen />;
+
+  // Logged in but shop not created
+  if (!shop) {
+    return <ShopNavigator />;
   }
-  else {
-    return <AppNavigator />;
-  }
+
+  // Logged in and shop exists
+  return <AppNavigator />;
 }

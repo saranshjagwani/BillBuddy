@@ -17,8 +17,26 @@ export async function createShop(shopName: string) {
     }
   );
 
+  
   if (!res.ok) {
     throw new Error("Failed to create shop");
+  }
+
+  return res.json();
+}
+
+
+export async function fetchShop() {
+  const token = await auth().currentUser?.getIdToken();
+
+  const res = await fetch(`http://192.168.29.151:3000/get-shop`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch shop");
   }
 
   return res.json();

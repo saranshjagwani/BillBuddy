@@ -15,8 +15,6 @@ import {
 import type { LoginComponentProps } from "../types/Login-Component.types";
 import { useAppTheme } from "../../shared/provider/AppThemeProvider";
 
-
-
 export function LoginComponent({
   phoneNumber,
   setPhoneNumber,
@@ -28,10 +26,6 @@ export function LoginComponent({
   handleContinue,
 }: LoginComponentProps) {
   const { theme } = useAppTheme();
-
-
-  
-
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: theme.colors.background }}

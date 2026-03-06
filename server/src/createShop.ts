@@ -20,6 +20,7 @@ export async function createShop(req: express.Request, res: express.Response) {
       res.status(400).send("Shop name required");
       return;
     }
+    
 
     await db.collection("shops").doc(uid).set({
       shopName,

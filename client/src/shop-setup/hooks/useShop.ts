@@ -1,28 +1,25 @@
-import { useEffect, useState } from "react";
-import auth from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
+import { useEffect, useState, useCallback } from "react";
+import { fetchShop } from "../services/shop.services";
 
 export default function useShop() {
   const [shop, setShop] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const uid = auth().currentUser?.uid;
-    console.log("Fetching shop for user:", uid);
-
-    if (!uid) return;
-
-    firestore()
-      .collection("shops")
-      .doc(uid)
-      .get()
-      .then((doc:any) => {
-        if (doc.exists) {
-          setShop(doc.data());
-        }
-        setLoading(false);
-      });
+  const fetchData = useCallback(async () => {
+    try {
+      const data = await fetchShop();
+      console.log("Fetched shop data:", data);
+      setShop(data.shop);
+    } catch (err) {
+      console.error("Error fetching shop:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { shop, loading };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { shop, loading, refetch: fetchData };
 }

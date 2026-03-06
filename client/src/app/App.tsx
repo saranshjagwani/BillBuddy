@@ -4,12 +4,10 @@
 
 import { useColorScheme } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { ThemeProvider } from "@react-navigation/native";
 import { NavigationContainer } from "@react-navigation/native";
 
 // --- Internal Modules ---
 import { GlobalLoadingProvider } from "../shared/provider/GlobalLoadingProvider";
-import { DarkTheme, LightTheme } from "../theme/theme";
 import RootNavigator from "../Navigator/RootNavigator";
 import { AppThemeProvider } from "../shared/provider/AppThemeProvider";
 
@@ -17,9 +15,8 @@ import { AppThemeProvider } from "../shared/provider/AppThemeProvider";
  * @component App
  * @description The root entry point of the application.
  * * Responsibilities:
- * 1. Theme Management: Switches between Light and Dark modes based on system settings.
- * 2. System UI: Syncs the StatusBar style with the current theme.
- * 3. Routing: Bootstraps the main navigation tree via AppRouter.
+ * 1. System UI: Syncs the StatusBar style with the current theme.
+ * 2. Routing: Bootstraps the main navigation tree via AppRouter.
  */
 export default function App() {
   // 1. HOOKS: Detect the device's system color scheme (light, dark, or null)

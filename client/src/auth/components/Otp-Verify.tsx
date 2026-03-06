@@ -16,10 +16,6 @@ import Svg, { Path } from "react-native-svg";
 import { useAppTheme } from "../../shared/provider/AppThemeProvider";
 import useOtp from "../hooks/useOtp";
 
-
-
-
-
 export default function VerifyOtpPage({
   phoneNumber,
   confirmation,
@@ -27,7 +23,7 @@ export default function VerifyOtpPage({
   onSuccess,
 }: VerifyOtpPageProps) {
   const { theme ,isDarkMode} = useAppTheme();
-  const {otp, loading, error, resendTimer, onDigitChange, onKeyPress, handleResend, inputRefs} = useOtp(confirmation, onSuccess, onBack);
+  const {otp, error, resendTimer, loading, onDigitChange, onKeyPress, handleResend, inputRefs} = useOtp(confirmation, phoneNumber, onSuccess, onBack);
   
   const styles = makeStyles(theme.colors, isDarkMode);
 

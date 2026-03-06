@@ -37,7 +37,6 @@ export function useLogin() {
   }, 2000);
 
   try {
-    console.log("Attempting to send OTP to:", phoneNumber);
 
     const confirmation = await sendOtp(phoneNumber);
 
@@ -49,7 +48,7 @@ export function useLogin() {
       "We couldn't send the OTP. Please check your connection and try again."
     );
   } finally {
-    clearTimeout(loaderTimer); // ⭐ cancel timer
+    clearTimeout(loaderTimer); 
     setLoading(false);
     hide();
   }

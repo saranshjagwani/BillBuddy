@@ -1,52 +1,55 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { TextInput } from "react-native";
-import { confirmOtp } from "../services/auth.service";
+import { sendOtp,confirmOtp } from "../services/auth.service";
 import type { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import {useGlobalLoading} from "../../shared/provider/GlobalLoadingProvider";
+import { useLogin } from "./usePhoneAuth";
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
 
 export default function useOtp(
   confirmation: FirebaseAuthTypes.ConfirmationResult,
+  phoneNumber: string,
   onSuccess: (user: FirebaseAuthTypes.User) => void,
   onBack: () => void
 ) {
-  const {show,hide } = useGlobalLoading();
+  const { show, hide } = useGlobalLoading();
+
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resendTimer, setResendTimer] = useState(RESEND_SECONDS);
+  const [resendTimer, setResendTimer] = useState<number>(RESEND_SECONDS);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
-  // Timer
+  // Countdown timer
   useEffect(() => {
-    if (resendTimer <= 0) return;
+    if (!resendTimer) return;
 
-    const id = setInterval(() => {
+    const timer = setTimeout(() => {
       setResendTimer((t) => t - 1);
     }, 1000);
 
-    return () => clearInterval(id);
+    return () => clearTimeout(timer);
   }, [resendTimer]);
 
-  // Verify when OTP complete
+  // Auto verify
   useEffect(() => {
-    if (otp.every((d) => d !== "")) {
+    if (otp.every(Boolean)) {
       handleVerify(otp.join(""));
     }
   }, [otp]);
 
   const onDigitChange = (index: number, value: string) => {
-    const cleaned = value.replace(/\D/g, "").slice(-1);
+    const digit = value.replace(/\D/g, "").slice(-1);
 
     const updated = [...otp];
-    updated[index] = cleaned;
+    updated[index] = digit;
 
     setOtp(updated);
 
-    if (cleaned && index < OTP_LENGTH - 1) {
+    if (digit && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -57,12 +60,12 @@ export default function useOtp(
 
       if (!otp[index] && index > 0) {
         updated[index - 1] = "";
-        setOtp(updated);
         inputRefs.current[index - 1]?.focus();
       } else {
         updated[index] = "";
-        setOtp(updated);
       }
+
+      setOtp(updated);
     }
   };
 
@@ -78,13 +81,11 @@ export default function useOtp(
         if (result?.user) {
           onSuccess(result.user);
         } else {
-          throw new Error("OTP verification failed");
+          throw new Error();
         }
       } catch {
-        setError("Invalid OTP. Please check and try again.");
-
+        setError("Invalid OTP. Please try again.");
         setOtp(Array(OTP_LENGTH).fill(""));
-
         setTimeout(() => inputRefs.current[0]?.focus(), 100);
       } finally {
         hide();
@@ -94,18 +95,29 @@ export default function useOtp(
     [confirmation, onSuccess]
   );
 
-  const handleResend = () => {
-    setOtp(Array(OTP_LENGTH).fill(""));
-    setError(null);
-    setResendTimer(RESEND_SECONDS);
-    onBack();
+  const handleResend = async () => {
+    try {
+      show();
+      setLoading(true);
+
+      await sendOtp(phoneNumber);
+
+      setOtp(Array(OTP_LENGTH).fill(""));
+      setError(null);
+      setResendTimer(RESEND_SECONDS);
+
+      onBack();
+    } finally {
+      hide();
+      setLoading(false);
+    }
   };
 
   return {
     otp,
-    loading,
     error,
     resendTimer,
+    loading,
     inputRefs,
     onDigitChange,
     onKeyPress,
