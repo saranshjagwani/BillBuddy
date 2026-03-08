@@ -16,10 +16,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
+      }
     },
     "plugins": [
-      "@react-native-firebase/app", "@react-native-firebase/auth",
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
       [
         "expo-build-properties",
         {
@@ -28,6 +29,11 @@
           }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "863bc2b1-0552-40de-a8c2-fa80b22fd7e3"
+      }
+    }
   }
 }

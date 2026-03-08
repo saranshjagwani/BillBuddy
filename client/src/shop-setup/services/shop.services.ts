@@ -1,43 +1,62 @@
 import auth from "@react-native-firebase/auth";
 
-export async function createShop(shopName: string) {
+const API_URL = "http://192.168.29.151:3000";
 
-  const token = await auth().currentUser?.getIdToken();
-  console.log("Token:", token);
+/**
+ * Get Firebase ID token safely
+ */
+async function getAuthToken(): Promise<string> {
+  const user = auth().currentUser;
 
-  const res = await fetch(
-    "http://192.168.29.151:3000/create-shop",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ shopName }),
-    }
-  );
-
-  
-  if (!res.ok) {
-    throw new Error("Failed to create shop");
+  if (!user) {
+    throw new Error("User not authenticated");
   }
 
-  return res.json();
+  const token = await user.getIdToken();
+  return token;
 }
 
+/**
+ * Create shop
+ */
+export async function createShop(shopName: string , category: string, hasStaff: boolean) {
+  const token = await getAuthToken();
 
+  const res = await fetch(`${API_URL}/create-shop`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ shopName , category, hasStaff }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to create shop");
+  }
+
+  return data;
+}
+
+/**
+ * Fetch shop
+ */
 export async function fetchShop() {
-  const token = await auth().currentUser?.getIdToken();
+  const token = await getAuthToken();
 
-  const res = await fetch(`http://192.168.29.151:3000/get-shop`, {
+  const res = await fetch(`${API_URL}/get-shop`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
+  const data = await res.json();
+  
   if (!res.ok) {
-    throw new Error("Failed to fetch shop");
+    throw new Error(data?.message || "Failed to fetch shop");
   }
 
-  return res.json();
+  return data;
 }

@@ -1,4 +1,4 @@
-import { db, auth } from "../firebaseAdmin.ts";
+import { db, auth } from "../../firebaseAdmin.ts";
 import express from "express";
 
 export async function getShop(req: express.Request, res: express.Response) {
@@ -16,12 +16,15 @@ export async function getShop(req: express.Request, res: express.Response) {
     const shopDoc = await db.collection("shops").doc(uid).get();
 
     if (!shopDoc.exists) {
-      res.json({ shop: null });
-      return;
+      return res.json({ shop: null });
     }
 
+    const shopData = shopDoc.data();
+
+    console.log(`Fetched shop for user ${uid}:`, shopData);
+
     res.json({
-      shop: shopDoc.data(),
+      shop: shopData,
     });
 
   } catch (err) {

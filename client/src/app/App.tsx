@@ -10,6 +10,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { GlobalLoadingProvider } from "../shared/provider/GlobalLoadingProvider";
 import RootNavigator from "../Navigator/RootNavigator";
 import { AppThemeProvider } from "../shared/provider/AppThemeProvider";
+import { ToastProvider } from "../ui/toast/ToastProvider";
 
 /**
  * @component App
@@ -31,7 +32,9 @@ export default function App() {
       {/* THEME PROVIDER: 
               Provides theme context to the entire app, allowing for dynamic theming. 
           */}
+          
       <AppThemeProvider>
+        <ToastProvider>
         <NavigationContainer>
           {/* STATUS BAR: 
             Controls the clock, battery, and signal icons at the top of the screen. 
@@ -45,6 +48,7 @@ export default function App() {
             <RootNavigator />
           </GlobalLoadingProvider>
         </NavigationContainer>
+        </ToastProvider>
       </AppThemeProvider>
     </>
   );

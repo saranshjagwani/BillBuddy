@@ -1,6 +1,6 @@
-import { db, auth } from "../firebaseAdmin.ts";
+import { db, auth } from "../../firebaseAdmin.ts";
 import express from "express";
-
+import { v4 as uuidv4 } from "uuid";
 
 export async function createShop(req: express.Request, res: express.Response) {
   try {
@@ -13,8 +13,9 @@ export async function createShop(req: express.Request, res: express.Response) {
 
     const decoded = await auth.verifyIdToken(token);
     const uid = decoded.uid;
+    const shopId = uuidv4();
 
-    const { shopName } = req.body;
+    const { shopName , category, hasStaff } = req.body;
 
     if (!shopName) {
       res.status(400).send("Shop name required");
@@ -24,12 +25,16 @@ export async function createShop(req: express.Request, res: express.Response) {
 
     await db.collection("shops").doc(uid).set({
       shopName,
+      shopId,
+      category,
+      hasStaff,
       ownerUid: uid,
       createdAt: new Date(),
       isSetupComplete: true,
     });
 
     res.json({ success: true });
+    // console.log(`Shop created for user ${uid} with name "${shopName}"`);
 
   } catch (err) {
     console.error(err);

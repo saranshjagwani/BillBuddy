@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { TextInput } from "react-native";
-import { sendOtp,confirmOtp } from "../services/auth.service";
+import { sendOtp, confirmOtp } from "../services/auth.service";
 import type { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import {useGlobalLoading} from "../../shared/provider/GlobalLoadingProvider";
-import { useLogin } from "./usePhoneAuth";
+import { useGlobalLoading } from "../../shared/provider/GlobalLoadingProvider";
+import { useToast } from "../../ui/toast/useToast";
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
@@ -12,9 +12,10 @@ export default function useOtp(
   confirmation: FirebaseAuthTypes.ConfirmationResult,
   phoneNumber: string,
   onSuccess: (user: FirebaseAuthTypes.User) => void,
-  onBack: () => void
+  onBack: () => void,
 ) {
   const { show, hide } = useGlobalLoading();
+  const { showToast } = useToast();
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [error, setError] = useState<string | null>(null);
@@ -78,12 +79,16 @@ export default function useOtp(
       try {
         const result = await confirmOtp(confirmation, code);
 
+        // ✅ don't throw if user is missing, just let auth state handle it
         if (result?.user) {
+          showToast("success", "Phone number verified successfully!");
           onSuccess(result.user);
-        } else {
-          throw new Error();
         }
-      } catch {
+        // if no result.user, onAuthStateChanged will still fire
+        // and RootNavigator switches automatically
+      } catch (error) {
+        // ✅ only real errors reach here now
+        console.error("OTP Error:", error); // ← add this first to see real error
         setError("Invalid OTP. Please try again.");
         setOtp(Array(OTP_LENGTH).fill(""));
         setTimeout(() => inputRefs.current[0]?.focus(), 100);
@@ -92,7 +97,7 @@ export default function useOtp(
         setLoading(false);
       }
     },
-    [confirmation, onSuccess]
+    [confirmation, onSuccess],
   );
 
   const handleResend = async () => {

@@ -1,26 +1,33 @@
+import { useEffect } from "react";
+
 import AuthNavigator from "./AuthNavigator";
 import AppNavigator from "./AppNavigator";
 import ShopNavigator from "./ShopNavigator";
 
 import useAuthState from "../auth/hooks/useAuth";
-import useShop from "../shop-setup/hooks/useShop";
-
 import { useGlobalLoading } from "../shared/provider/GlobalLoadingProvider";
 
 export default function RootNavigator() {
-  const { user, initializing } = useAuthState();
-  const { shop, loading: shopLoading } = useShop();
+  const { user, initializing, isShopSetupComplete ,checkingShop} = useAuthState();
 
   const { show, hide } = useGlobalLoading();
 
   const isAuthenticated = !!user;
 
-  // Handle loading state
-  if (initializing || shopLoading) {
-    show();
+  useEffect(() => {
+    if (initializing) {
+      show();
+    } else {
+      hide();
+    }
+  }, [initializing]);
+
+  /**
+   * Prevent navigation rendering while auth + shop check is running.
+   * This avoids screen flicker between Auth / Shop / App navigators.
+   */
+  if (initializing || checkingShop) {
     return null;
-  } else {
-    hide();
   }
 
   // Not logged in
@@ -29,7 +36,7 @@ export default function RootNavigator() {
   }
 
   // Logged in but shop not created
-  if (!shop) {
+  if (!isShopSetupComplete) {
     return <ShopNavigator />;
   }
 
