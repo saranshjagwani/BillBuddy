@@ -14,7 +14,7 @@
       "package": "com.billbuddy.client",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/BillBuddyLogo2.png",
         "backgroundColor": "#ffffff"
       }
     },

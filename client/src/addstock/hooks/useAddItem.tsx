@@ -5,19 +5,26 @@ import { useToast } from "../../ui/toast/useToast";
 
 
 export const PRODUCT_UNITS = [
-  "Bottle",
   "Piece",
   "Kg",
   "Gram",
   "Litre",
   "ML",
+  "Bottle",
+  "Tablets",
   "Box",
   "Pack",
+  "Packet",
   "Dozen",
   "Metre",
+  "Foot",
+  "Roll",
+  "Set",
+  "Pair",
+  "Strip",
+  "Carton",
   "Other",
 ];
-
 
 
 type SavePayload = {

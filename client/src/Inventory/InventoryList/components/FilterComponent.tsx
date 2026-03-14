@@ -9,6 +9,8 @@ import {
 } from "../hooks/useItemFilter";
 import { useAppTheme } from "../../../shared/provider/AppThemeProvider";
 import { LightColors } from "../../../shared/theme/color";
+import {SECTIONS,sortOptions ,stockOptions,expiryOptions} from "../constants/FilterConstants"
+import type { Section } from "../constants/FilterConstants";
 
 interface Props {
   visible: boolean;
@@ -21,15 +23,9 @@ interface Props {
   activeCount: number;
 }
 
-type Section = "category" | "supplier" | "stock" | "expiry" | "sort";
 
-const SECTIONS: { key: Section; label: string }[] = [
-  { key: "sort", label: "Sort By" },
-  { key: "category", label: "Category" },
-  { key: "supplier", label: "Supplier" },
-  { key: "stock", label: "Stock Status" },
-  { key: "expiry", label: "Expiry" },
-];
+
+
 
 
 
@@ -42,6 +38,15 @@ export default function FilterPage({
 const c = theme.colors; // shorthand
 
 const styles = makeStyles(c);
+
+const sectionHasActive = (key: Section): boolean => {
+            if (key === "sort") return filters.sort !== "none";
+            if (key === "stock") return filters.stock !== "all";
+            if (key === "expiry") return filters.expiry !== "all";
+            if (key === "category") return !!filters.category;
+            if (key === "supplier") return !!filters.supplier;
+            return false;
+          };
 
   const RadioRow = ({
     label, selected, onPress,
@@ -72,16 +77,7 @@ const styles = makeStyles(c);
   const renderRight = () => {
     switch (activeSection) {
       case "sort":
-        const sortOptions: { label: string; value: SortOption }[] = [
-          { label: "Default", value: "none" },
-          { label: "Name: A → Z", value: "az" },
-          { label: "Name: Z → A", value: "za" },
-          { label: "Stock: Low → High", value: "stock_low_high" },
-          { label: "Stock: High → Low", value: "stock_high_low" },
-          { label: "Price: Low → High", value: "price_low_high" },
-          { label: "Price: High → Low", value: "price_high_low" },
-          { label: "Recently Added", value: "recently_added" },
-        ];
+        
         return sortOptions.map((o) => (
           <RadioRow
             key={o.value}
@@ -92,12 +88,7 @@ const styles = makeStyles(c);
         ));
 
       case "stock":
-        const stockOptions: { label: string; value: StockFilter }[] = [
-          { label: "All", value: "all" },
-          { label: "In Stock", value: "in" },
-          { label: "Low Stock (< 5)", value: "low" },
-          { label: "Out of Stock", value: "out" },
-        ];
+        
         return stockOptions.map((o) => (
           <RadioRow
             key={o.value}
@@ -108,11 +99,7 @@ const styles = makeStyles(c);
         ));
 
       case "expiry":
-        const expiryOptions: { label: string; value: ExpiryFilter }[] = [
-          { label: "All", value: "all" },
-          { label: "Expiring Soon (7 days)", value: "soon" },
-          { label: "Expired", value: "expired" },
-        ];
+       
         return expiryOptions.map((o) => (
           <RadioRow
             key={o.value}
@@ -148,15 +135,7 @@ const styles = makeStyles(c);
     }
   };
 
-  const sectionHasActive = (key: Section): boolean => {
-    if (key === "sort") return filters.sort !== "none";
-    if (key === "stock") return filters.stock !== "all";
-    if (key === "expiry") return filters.expiry !== "all";
-    if (key === "category") return !!filters.category;
-    if (key === "supplier") return !!filters.supplier;
-    return false;
-  };
-
+ 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <SafeAreaView style={styles.container}>

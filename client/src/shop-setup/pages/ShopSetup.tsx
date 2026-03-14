@@ -21,15 +21,19 @@ import { useNavigation } from "@react-navigation/native";
 import { useToast } from "../../ui/toast/useToast";
 
 const CATEGORIES = [
-  "Grocery",
-  "Electronics",
-  "Fashion",
-  "Beauty & Health",
+  "Grocery / Kirana",
+  "Pharmacy / Medical",
+  "Electronics & Mobile",
+  "Clothing / Fashion",
+  "Beauty / Cosmetics",
   "Home & Kitchen",
+  "Stationery",
   "Sports",
   "Books",
   "Toys",
-  "Automotive",
+  "Automotive / Spare Parts",
+  "Hardware / Electrical",
+  "General Store",
   "Other",
 ];
 

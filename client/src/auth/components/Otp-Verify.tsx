@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  useColorScheme,
 } from "react-native";
 import type { VerifyOtpPageProps } from "../types/Verify-Component.types";
 import Svg, { Path } from "react-native-svg";

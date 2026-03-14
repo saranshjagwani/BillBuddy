@@ -1,55 +1,40 @@
 // ==========================================
 // src/app/App.tsx
 // ==========================================
+// Main entry point for the React Native application.
+// This component sets up the navigation, theme, and global providers.
 
 import { useColorScheme } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
 
-// --- Internal Modules ---
-import { GlobalLoadingProvider } from "../shared/provider/GlobalLoadingProvider";
-import RootNavigator from "../Navigator/RootNavigator";
-import { AppThemeProvider } from "../shared/provider/AppThemeProvider";
-import { ToastProvider } from "../ui/toast/ToastProvider";
+import AppProviders from "./Provider/AppProviders";
 
 /**
  * @component App
  * @description The root entry point of the application.
- * * Responsibilities:
+ * Responsibilities:
  * 1. System UI: Syncs the StatusBar style with the current theme.
- * 2. Routing: Bootstraps the main navigation tree via AppRouter.
+ * 2. Routing: Bootstraps the main navigation tree via NavigationContainer.
+ * 3. Providers: Wraps the app with global providers for theme, loading, etc.
  */
 export default function App() {
-  // 1. HOOKS: Detect the device's system color scheme (light, dark, or null)
+  // HOOKS: Detect the device's system color scheme (light, dark, or null)
   const colorScheme = useColorScheme();
 
-  // 2. CONSTANTS: Logic for theme selection
+  // CONSTANTS: Determine if dark mode is active and set status bar style accordingly
   const isDarkMode = colorScheme === "dark";
   const statusBarStyle = isDarkMode ? "light" : "dark";
 
   return (
     <>
-      {/* THEME PROVIDER: 
-              Provides theme context to the entire app, allowing for dynamic theming. 
-          */}
-          
-      <AppThemeProvider>
-        <ToastProvider>
-        <NavigationContainer>
-          {/* STATUS BAR: 
-            Controls the clock, battery, and signal icons at the top of the screen. 
-        */}
-          <StatusBar style={statusBarStyle} />
-
-          {/* ROUTING: 
-            The gateway to all screens (Home, Profile, etc.). 
-        */}
-          <GlobalLoadingProvider>
-            <RootNavigator />
-          </GlobalLoadingProvider>
-        </NavigationContainer>
-        </ToastProvider>
-      </AppThemeProvider>
+      {/* THEME PROVIDER: Provides theme context to the entire app for dynamic theming */}
+      <NavigationContainer>
+        {/* STATUS BAR: Controls the appearance of system UI elements like clock and battery */}
+        <StatusBar style={statusBarStyle} />
+        {/* APP PROVIDERS: Wraps the app with global providers for state management, theming, etc. */}
+        <AppProviders />
+      </NavigationContainer>
     </>
   );
 }

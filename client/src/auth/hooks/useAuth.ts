@@ -22,10 +22,7 @@
 
 import { useEffect, useState } from "react";
 import { getApp } from "@react-native-firebase/app";
-import {
-  getAuth,
-  onAuthStateChanged,
-} from "@react-native-firebase/auth";
+import { getAuth, onAuthStateChanged } from "@react-native-firebase/auth";
 import type { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import { fetchShop } from "../../shop-setup/services/shop.services";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -62,48 +59,40 @@ export default function useAuth() {
      * - App always stays in sync with auth state
      */
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-  
-  if (!firebaseUser) {
-    // ✅ Single update, no flicker
-    setUser(null);
-    setIsShopSetupComplete(false);
-    setInitializing(false);
-    return;
-  }
+      if (!firebaseUser) {
+        setUser(null);
+        setIsShopSetupComplete(false);
+        setInitializing(false);
+        return;
+      }
 
-  setCheckingShop(true); // ✅ start shop check
-setUser(firebaseUser);
-
-  try {
-    const cachedShop = await AsyncStorage.getItem("shop");
-
-    if (cachedShop) {
-      // ✅ Batch all state at once before render
+      setCheckingShop(true);
       setUser(firebaseUser);
-      setIsShopSetupComplete(true);
-      setInitializing(false);
-      return;
-    }
 
-    const data = await fetchShop();
+      try {
+        const cachedShop = await AsyncStorage.getItem("shop");
 
-    // ✅ Batch all state at once before render
-    setUser(firebaseUser);
-    setIsShopSetupComplete(!!data);
+        if (cachedShop) {
+          setIsShopSetupComplete(true);
+          setInitializing(false);
+          return;
+        }
 
-    if (data?.shop) {
-      await AsyncStorage.setItem("shop", JSON.stringify(data));
-    }
+        const data = await fetchShop();
 
-  } catch (error) {
-    console.error("Auth hook: failed to fetch shop", error);
-    setUser(firebaseUser);
-    setIsShopSetupComplete(false);
-  } finally {
-    setInitializing(false);
-    setCheckingShop(false); // ✅ done checking
-  }
-});
+        setIsShopSetupComplete(!!data);
+
+        if (data?.shop) {
+          await AsyncStorage.setItem("shop", JSON.stringify(data));
+        }
+      } catch (error) {
+        console.error("Auth hook: failed to fetch shop", error);
+        setIsShopSetupComplete(false);
+      } finally {
+        setInitializing(false);
+        setCheckingShop(false);
+      }
+    });
 
     /**
      * Cleanup:
@@ -121,6 +110,6 @@ setUser(firebaseUser);
     user,
     initializing,
     isShopSetupComplete,
-      checkingShop,
+    checkingShop,
   };
 }

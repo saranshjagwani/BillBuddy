@@ -51,6 +51,7 @@ android/
 ios/
 
 .google-services.json
+client/.google-services.json
 
 assets/
 

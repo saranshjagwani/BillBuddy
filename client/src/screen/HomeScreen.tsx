@@ -19,6 +19,8 @@ type AppStackParamList = {
   ShopSetup:undefined;
   HomeScreen:undefined;
   InventoryList :undefined;
+  AdditionalScreen :undefined;
+  CartScreen:undefined;
 };
 
 type Nav = StackNavigationProp<AppStackParamList, "Home">;

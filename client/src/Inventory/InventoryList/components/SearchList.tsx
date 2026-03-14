@@ -1,6 +1,6 @@
 import React from "react";
-import { View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, TextInput, StyleSheet, TouchableOpacity, Animated } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 interface Props {
   value: string;
@@ -13,53 +13,65 @@ export default function SearchBar({
   onChangeText,
   placeholder = "Search items...",
 }: Props) {
-  
   return (
-    <View style={styles.container}>
-      <Ionicons name="search-outline" size={18} color="#888" style={styles.icon} />
-
+    <View style={[styles.container, value.length > 0 && styles.containerActive]}>
+      <Feather
+        name="search"
+        size={16}
+        color={value.length > 0 ? "#1E63D5" : "#94A3B8"}
+        style={styles.icon}
+      />
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#aaa"
+        placeholderTextColor="#94A3B8"
         style={styles.input}
+        returnKeyType="search"
       />
-
       {value.length > 0 && (
-        <TouchableOpacity onPress={() => onChangeText("")}>
-          <Ionicons name="close-circle" size={18} color="#888" />
+        <TouchableOpacity
+          onPress={() => onChangeText("")}
+          style={styles.clearBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Feather name="x" size={14} color="#fff" />
         </TouchableOpacity>
       )}
     </View>
   );
 }
+
 const styles = StyleSheet.create({
-container: {  
-flexDirection: "row",
-alignItems: "center",
-backgroundColor: "#fff",
-borderRadius: 12,
-marginHorizontal: 16,
-marginBottom: 12,
-paddingHorizontal: 6,
-paddingVertical: 5,
-
-
-shadowColor: "#000",
-shadowOpacity: 0.05,
-shadowRadius: 4,
-elevation: 2,
-
-},
-
-icon: {
-marginRight: 8,
-},
-
-input: {
-flex: 1,
-fontSize: 15,
-color: "#111",
-},
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    marginHorizontal: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1.5,
+    borderColor: "transparent",
+  },
+  containerActive: {
+    backgroundColor: "#EFF6FF",
+    borderColor: "#1E63D5",
+  },
+  icon: {
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
+    fontSize: 14,
+    color: "#0F172A",
+    fontWeight: "500",
+    paddingVertical: 0,
+  },
+  clearBtn: {
+    backgroundColor: "#1E63D5",
+    borderRadius: 20,
+    padding: 3,
+    marginLeft: 6,
+  },
 });
