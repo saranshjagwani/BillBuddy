@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import SearchBar from "../components/SearchList";
 import List from "../components/List";
 import FilterPage from "../components/FilterPage";
-import { useItems } from "../hooks/useItems";
+import { useItems } from "../../../shared/provider/ItemsContext";
 import { useItemSearch } from "../hooks/useItemSearch";
 import { useItemFilter } from "../hooks/useItemFilter";
 import { Feather } from "@expo/vector-icons";
@@ -56,14 +56,14 @@ export const InventoryListPage = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5", paddingTop: 16 },
+  container: { flex: 1, backgroundColor: "#f5f5f5", paddingTop: 16 , marginTop:10,},
   topRow: {
     flexDirection: "row", alignItems: "center",
     paddingRight: 16, marginTop: 8,
   },
   searchFlex: { flex: 1 },
   filterBtn: {
-    padding: 10, backgroundColor: "#fff",
+    padding: 10, backgroundColor: "#fffbfb",
     borderRadius: 10, marginLeft: 8,
     shadowColor: "#000", shadowOpacity: 0.05,
     shadowRadius: 4, elevation: 2,

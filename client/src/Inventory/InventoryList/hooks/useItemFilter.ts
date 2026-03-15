@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Item } from "./useItems";
+import { Item } from "../../../shared/provider/ItemsContext";
 
 export type StockFilter = "all" | "low" | "in" | "out";
 export type ExpiryFilter = "all" | "soon" | "expired";
@@ -40,7 +40,7 @@ export function useItemFilter(items: Item[]) {
     return [...new Set(vals)];
   }, [items]);
 
-cd   const filtered = useMemo(() => {
+   const filtered = useMemo(() => {
     let result = [...items];
 
     // Category

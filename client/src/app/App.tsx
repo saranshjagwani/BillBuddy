@@ -11,6 +11,7 @@ import { GlobalLoadingProvider } from "../shared/provider/GlobalLoadingProvider"
 import RootNavigator from "../Navigator/RootNavigator";
 import { AppThemeProvider } from "../shared/provider/AppThemeProvider";
 import { ToastProvider } from "../ui/toast/ToastProvider";
+import { ItemsProvider } from "../shared/provider/ItemsContext";
 
 /**
  * @component App
@@ -35,6 +36,7 @@ export default function App() {
           
       <AppThemeProvider>
         <ToastProvider>
+          <ItemsProvider>
         <NavigationContainer>
           {/* STATUS BAR: 
             Controls the clock, battery, and signal icons at the top of the screen. 
@@ -48,6 +50,7 @@ export default function App() {
             <RootNavigator />
           </GlobalLoadingProvider>
         </NavigationContainer>
+        </ItemsProvider>
         </ToastProvider>
       </AppThemeProvider>
     </>

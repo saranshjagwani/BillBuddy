@@ -7,6 +7,7 @@ import AddStockPage from "../addstock/pages/AddStockPage";
 import ShopSetupScreen from "../shop-setup/pages/ShopSetup";
 import HomeScreen from "../screen/HomeScreen";
 import { InventoryListPage } from "../Inventory/InventoryList/pages/InvenotryListPage";
+import BillingPage from "../Billing/pages/BillingPage";
 
 
 export type AppStackParamList = {
@@ -15,6 +16,7 @@ export type AppStackParamList = {
   ShopSetup:undefined;
   HomeScreen:undefined;
   InventoryListPage :undefined;
+  BillingPage:undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -29,6 +31,7 @@ export default function AppNavigator() {
       <Stack.Screen name="InventoryListPage" component={InventoryListPage} />
       <Stack.Screen name="AddStockScreen1" component={AddStockScreen1} />
       <Stack.Screen name="ShopSetup" component={ShopSetupScreen} />
+      <Stack.Screen name="BillingPage" component={BillingPage}/>
       
     </Stack.Navigator>
   );

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Item } from "./useItems";
+import { Item } from "../../../shared/provider/ItemsContext";
 
 export function useItemSearch(items: Item[]) {
   const [query, setQuery] = useState("");

@@ -20,7 +20,7 @@ export function useItems() {
      
 
       const data = await fetchShop();
-      console.log("hook tak aaya hua data ",data);
+      
 
       if (!data.success) {
         throw new Error(data.error || "Failed to fetch items");
