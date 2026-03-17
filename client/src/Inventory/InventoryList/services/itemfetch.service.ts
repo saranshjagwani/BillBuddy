@@ -1,5 +1,6 @@
 import auth from "@react-native-firebase/auth";
 
+
 const API_URL = "http://192.168.29.151:3000";
 
 
@@ -39,3 +40,4 @@ export async function fetchShop() {
 
   return data;
 }
+

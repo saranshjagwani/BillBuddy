@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo ,useEffect} from "react";
 import {
   View, Text, TextInput, TouchableOpacity,
   FlatList, StyleSheet, Modal, KeyboardAvoidingView,
@@ -28,12 +28,29 @@ export default function AddEditItem({ visible, onClose, onSave, editItem }: Prop
   const { items } = useItems();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [quantity, setQuantity] = useState("1");
-  const [discount, setDiscount] = useState("0");
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<BillItem | null>(
+  editItem ? {
+    itemId: editItem.itemId,
+    itemName: editItem.itemName,
+    price:editItem.price,
+    quantity:editItem.quantity,
+    discount:editItem.discount,
+    total:editItem.total,
 
-  // Fast search — max 3 suggestions, works on 1000+ items
+  } : null
+);
+  const [quantity, setQuantity] = useState("1");
+  const [discount, setDiscount] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  
+  useEffect(() => {
+  if (editItem) {
+    setQuantity(String(editItem.quantity));
+  }
+}, [editItem]);
+
+
+
   const suggestions = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q || selectedItem) return [];
@@ -42,12 +59,14 @@ export default function AddEditItem({ visible, onClose, onSave, editItem }: Prop
       .slice(0, 3);
   }, [searchQuery, items, selectedItem]);
 
-  const price = selectedItem ? Number(selectedItem.sellingPrice) : 0;
-  const qty = parseInt(quantity) || 0;
+  const price = selectedItem ? Number(selectedItem.price) : 0;
+  const qty = parseInt(quantity) ;
   const disc = parseFloat(discount) || 0;
   const total = Math.max(0, price * qty - disc);
 
-  function handleSelect(item: Item) {
+  console.log("oh ji discount",discount)
+
+  function handleSelect(item: BillItem) {
     setSelectedItem(item);
     setSearchQuery(item.itemName);
     setShowSuggestions(false);
@@ -70,10 +89,11 @@ export default function AddEditItem({ visible, onClose, onSave, editItem }: Prop
     setSearchQuery("");
     setSelectedItem(null);
     setQuantity("1");
-    setDiscount("0");
+    setDiscount("");
     setShowSuggestions(false);
     onClose();
   }
+  
 
   return (
     <Modal
@@ -110,7 +130,7 @@ export default function AddEditItem({ visible, onClose, onSave, editItem }: Prop
                 style={styles.input}
                 placeholder="Search item..."
                 placeholderTextColor="#94A3B8"
-                value={searchQuery}
+                value={selectedItem? selectedItem.itemName : searchQuery}
                 onChangeText={(text) => {
                   setSearchQuery(text);
                   setSelectedItem(null);

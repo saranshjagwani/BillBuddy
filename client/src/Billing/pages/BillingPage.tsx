@@ -1,50 +1,75 @@
-import React, { useState ,useRef } from "react";
-import {
-  View, Text, ScrollView, StyleSheet, SafeAreaView,
-} from "react-native";
+import React, { useState, useRef } from "react";
+import { View, Text, ScrollView, StyleSheet, SafeAreaView } from "react-native";
 import CustomerDetails, { CustomerInfo } from "../components/CustomerDetails";
 import AddEditItem, { BillItem as BillItemType } from "../components/AddItem";
 import BillItem from "../components/BillItem";
-import BillBar from "../components/Billbar";
+import BillBar from "../components/BillBar";
 import EmptyBill from "../components/EmptyList";
 import AddItemButton from "../components/AddItemButton";
+import { generateBill } from "../services/Billing.service";
 
 export default function BillingPage() {
-  const [customer, setCustomer] = useState<CustomerInfo>({ name: "", phone: "" });
+  const [customer, setCustomer] = useState<CustomerInfo>({
+    name: "",
+    phone: "",
+  });
   const [billItems, setBillItems] = useState<BillItemType[]>([]);
   const [showAddItem, setShowAddItem] = useState(false);
-  const editingItemRef = useRef<BillItemType | null>(null);
+  const [editingItem, setEditingItem] = useState<BillItemType | null>(null);
+  const [loading,setLoading]=useState<boolean>(false);
+
+  async function  onGenerate(){
+  setLoading(true);
+  try {
+    const data = await generateBill(customer, billItems);
+    console.log("Bill generated:", data);
+    // navigate or show success
+  } catch (error) {
+    console.error(error);
+    // show error toast
+  } finally {
+    setLoading(false);
+  }
+}
 
   function handleSaveItem(item: BillItemType) {
-    if (editingItemRef.current) {
-      setBillItems(prev => prev.map(i => i.itemId === item.itemId ? item : i));
+    if (editingItem) {
+      setBillItems((prev) =>
+        prev.map((i) => (i.itemId === item.itemId ? item : i)),
+      );
     } else {
-      const exists = billItems.find(i => i.itemId === item.itemId);
+      const exists = billItems.find((i) => i.itemId === item.itemId);
       if (exists) {
-        setBillItems(prev => prev.map(i =>
-          i.itemId === item.itemId
-            ? { ...i, quantity: i.quantity + item.quantity, total: i.total + item.total }
-            : i
-        ));
+        setBillItems((prev) =>
+          prev.map((i) =>
+            exists
+              ? {
+                  ...i,
+                  quantity: i.quantity + item.quantity,
+                  total: i.total + item.total,
+                }
+              : i,
+          ),
+        );
       } else {
-        setBillItems(prev => [...prev, item]);
+        setBillItems((prev) => [...prev, item]);
       }
     }
-    editingItemRef.current = null;
+    setEditingItem(null);
   }
 
   function handleEdit(item: BillItemType) {
-    editingItemRef.current = item;
+    setEditingItem(item);
+    console.log(item);
     setShowAddItem(true);
   }
 
   function handleDelete(itemId: string) {
-    setBillItems(prev => prev.filter(i => i.itemId !== itemId));
+    setBillItems((prev) => prev.filter((i) => i.itemId !== itemId));
   }
 
   return (
     <SafeAreaView style={styles.container}>
-
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Generate Bill</Text>
@@ -72,23 +97,29 @@ export default function BillingPage() {
                 onDelete={handleDelete}
               />
             ))}
-            <AddItemButton onPress={() => {
-             editingItemRef.current = null;
-              setShowAddItem(true);
-            }} />
+            <AddItemButton
+              onPress={() => {
+                setEditingItem(null);
+                setShowAddItem(true);
+              }}
+            />
           </View>
         )}
       </ScrollView>
 
       {/* Bill Summary Bar */}
-      <BillBar items={billItems} onGenerate={() => {}} />
+      <BillBar items={billItems} onGenerate={onGenerate} />
 
       {/* Add/Edit Modal */}
       <AddEditItem
+        key={editingItem?.itemId ?? "new"} 
         visible={showAddItem}
-        onClose={() => { setShowAddItem(false); editingItemRef.current = null;; }}
+        onClose={() => {
+          setShowAddItem(false);
+          setEditingItem(null);
+        }}
         onSave={handleSaveItem}
-        editItem={editingItemRef.current}
+        editItem={editingItem}
       />
     </SafeAreaView>
   );
@@ -97,7 +128,8 @@ export default function BillingPage() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F0F4F8" },
   header: {
-    paddingHorizontal: 20, paddingVertical: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     backgroundColor: "#F0F4F8",
   },
   headerTitle: { fontSize: 26, fontWeight: "800", color: "#0F172A" },

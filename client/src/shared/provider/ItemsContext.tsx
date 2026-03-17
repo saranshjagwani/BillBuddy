@@ -5,7 +5,7 @@ export type Item = {
   itemId: string;
   itemName: string;
   sellingPrice: number;
-  currentStock: number;
+  quantity: number;
   unit:string;
 };
 

@@ -32,7 +32,7 @@ export async function createItem(req:Express.Request, res:Express.Response) {
       notes,
       lastUpdatedVia
     } = req.body;
-    console.log("Request body for creating item:", req.body);
+
 
     // Validate required fields
     if ( !shopId || !itemName || !sellingPrice || !unit) {
@@ -77,7 +77,7 @@ export async function createItem(req:Express.Request, res:Express.Response) {
       success: true,
       item: itemData
     });
-    console.log(`Item created with ID ${itemId} for shop ${shopId} by user ${uid}`);
+    
 
   } catch (err) {
     console.error("Error creating item:", err);
