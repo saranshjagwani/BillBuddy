@@ -3,10 +3,10 @@ import ShopSetupScreen from "../shop-setup/pages/ShopSetup";
 
 const Stack = createNativeStackNavigator();
 
-export default function AuthNavigator() {
+export default function ShopNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="ShopSetup" component={ShopSetupScreen} />
+      <Stack.Screen name="ShopSetupScreen" component={ShopSetupScreen} />
     </Stack.Navigator>
   );
 }

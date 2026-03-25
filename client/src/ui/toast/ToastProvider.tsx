@@ -50,6 +50,7 @@ export function useToastContext() {
 
 const styles = StyleSheet.create({
   container: {
+    zIndex:500,
     position: "absolute",
     top: 60,
     right: 16,

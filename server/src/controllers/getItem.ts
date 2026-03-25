@@ -35,20 +35,20 @@ export async function getItems(req: express.Request, res: express.Response) {
     const shopData = shopDoc.data();
     const shopId = shopData.shopId;
 
-    console.log("shop id bhai ",shopId);
+    console.log("shop id bhai ", shopId);
 
     if (!shopId) {
       return res.status(400).json({
         error: "Shop ID missing in shop document",
       });
     }
-    console.log("ShopId is ",shopId);
+    console.log("ShopId is ", shopId);
 
     // Fetch items for this shop
     const snapshot = await db
-  .collection("item")
-  .where("shopId", "==", shopId)
-  .get();
+      .collection("item")
+      .where("shopId", "==", shopId)
+      .get();
 
     const items = snapshot.docs.map((doc) => ({
       itemId: doc.id,
@@ -62,7 +62,6 @@ export async function getItems(req: express.Request, res: express.Response) {
       count: items.length,
       items,
     });
-
   } catch (error) {
     console.error("Error fetching items:", error);
     return res.status(500).json({ error: "Failed to fetch items" });

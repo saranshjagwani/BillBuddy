@@ -24,11 +24,13 @@ export default function VerifyOtpPage({
 }: VerifyOtpPageProps) {
   const { theme ,isDarkMode} = useAppTheme();
   const {otp, error, resendTimer, loading, onDigitChange, onKeyPress, handleResend, inputRefs} = useOtp(confirmation, phoneNumber, onSuccess, onBack);
-  
+
   const styles = makeStyles(theme.colors, isDarkMode);
+  
 
   return (
     <KeyboardAvoidingView
+
       style={[styles.root, { backgroundColor: theme.colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
@@ -172,7 +174,7 @@ export default function VerifyOtpPage({
 
 function makeStyles(C: any, isDarkMode: boolean) {
   return StyleSheet.create({
-    root: { flex: 1 
+    root: { flex: 1
     },
     scroll: {
       flexGrow: 1,

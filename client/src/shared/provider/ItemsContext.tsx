@@ -1,60 +1,85 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { fetchShop } from "../../Inventory/InventoryList/services/itemfetch.service";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { db } from "../../shared/firebase/firebase.config";
+import { useAuth } from "./AuthContextProvider";
 
 export type Item = {
   itemId: string;
   itemName: string;
   sellingPrice: number;
+  currentStock: number;
   quantity: number;
-  unit:string;
+  unit: string;
 };
 
 type ItemsContextType = {
   items: Item[];
   loading: boolean;
   error: string | null;
-  refresh: () => Promise<void>;
 };
 
 const ItemsContext = createContext<ItemsContextType | undefined>(undefined);
 
 export const ItemsProvider = ({ children }: { children: React.ReactNode }) => {
+  const { shopData } = useAuth();
+
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchItems = async () => {
-    try {
-      setLoading(true);
-
-      const data = await fetchShop();
-
-      if (!data.success) {
-        throw new Error(data.error || "Failed to fetch items");
-      }
-
-      setItems(data.items || []);
-    } catch (err: any) {
-      console.error("Fetch items error:", err);
-      setError(err.message || "Failed to load items");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchItems(); // fetch only once when provider loads
-  }, []);
+    const shopId = shopData?.shopId;
+
+    // WHY: Prevent attaching listener before auth is ready
+    if (!shopId) {
+      setLoading(true); // still waiting for auth
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const q = query(
+      collection(db, "item"),
+      where("shopId", "==", shopId),
+      where("isActive", "==", true),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const updatedItems: Item[] = snapshot.docs.map((doc) => {
+          const data = doc.data();
+
+          // WHY: Ensure predictable shape (no silent undefined bugs)
+          return {
+            itemId: doc.id,
+            itemName: data.itemName || "",
+            sellingPrice: data.sellingPrice || 0,
+            currentStock: data.currentStock || 0,
+            quantity: data.quantity || 0,
+            unit: data.unit || "",
+          };
+        });
+
+        setItems(updatedItems);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Items snapshot error:", err);
+
+        // WHY: Never fail silently (constitution rule)
+        setError("Failed to sync items");
+        setLoading(false);
+      },
+    );
+
+    // WHY: Cleanup prevents duplicate listeners & memory leaks
+    return () => unsubscribe();
+  }, [shopData?.shopId]);
 
   return (
-    <ItemsContext.Provider
-      value={{
-        items,
-        loading,
-        error,
-        refresh: fetchItems,
-      }}
-    >
+    <ItemsContext.Provider value={{ items, loading, error }}>
       {children}
     </ItemsContext.Provider>
   );

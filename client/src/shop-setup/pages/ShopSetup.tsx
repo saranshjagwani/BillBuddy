@@ -14,30 +14,27 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { createShop } from "../services/shop.services";
-import { useAppTheme } from "../../shared/provider/AppThemeProvider"; 
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppStackParamList } from "../../Navigator/AppNavigator";
-import { useNavigation } from "@react-navigation/native";
+import { useAppTheme } from "../../shared/provider/AppThemeProvider";
 import { useToast } from "../../ui/toast/useToast";
+import {useAuth} from "../../shared/provider/AuthContextProvider";
 
 const CATEGORIES = [
-  "Grocery",
-  "Electronics",
-  "Fashion",
-  "Beauty & Health",
-  "Home & Kitchen",
-  "Sports",
-  "Books",
-  "Toys",
-  "Automotive",
+  "Grocery / Kirana",
+  "Pharmacy / Medical Store",
+  "General Store",
+  "Clothing / Fashion",
+  "Electronics / Mobile Shop",
+  "Dairy / Bakery",
+  "Hardware Store",
+  "Beauty & Cosmetics",
+  "Restaurant / Food Outlet",
   "Other",
 ];
 
 export default function ShopSetupScreen() {
   const { theme } = useAppTheme();
   const { showToast } = useToast();
-  type Nav = StackNavigationProp<AppStackParamList, 'ShopSetup'>;
-  const navigation = useNavigation<Nav>();
+  const { refetchShop} = useAuth();
 
   const [shopName, setShopName] = useState("");
   const [category, setCategory] = useState("Grocery");
@@ -48,27 +45,31 @@ export default function ShopSetupScreen() {
 
   const colors = theme.colors;
 
-  async function handleCreateShop() {
-    if (!shopName.trim()) {
-      setError("Please enter your shop name");
-      return;
-    }
-    setError(null);
-    setLoading(true);
-    try {
-      await createShop(shopName, category, hasStaff);
-      console.log("Shop created successfully");
-      showToast("success", "Shop created successfully !");
-      navigation.navigate("AddStockPage");
-    } catch (err) {
-      console.log("Error creating shop:", err);
-      setError("Could not create shop. Please try again.");
-      showToast("error", "Failed to create shop.");
-    } finally {
-      setLoading(false);
-    }
+ async function handleCreateShop() {
+  if (!shopName.trim()) {
+    setError("Please enter your shop name");
+    return;
   }
 
+  setError(null);
+  setLoading(true);
+
+  try {
+    await createShop(shopName, category, hasStaff);
+
+    showToast("success", "Shop created successfully!");
+
+
+
+    await refetchShop();
+
+  } catch (err) {
+    setError("Could not create shop. Please try again.");
+    showToast("error", "Failed to create shop.");
+  } finally {
+    setLoading(false);
+  }
+}
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.background }}
@@ -133,12 +134,7 @@ export default function ShopSetupScreen() {
         </TouchableOpacity>
 
         {/* Staff Toggle */}
-        <View
-          style={[
-            styles.toggleRow,
-            { borderBottomColor: colors.border },
-          ]}
-        >
+        <View style={[styles.toggleRow, { borderBottomColor: colors.border }]}>
           <Text style={[styles.toggleLabel, { color: colors.textPrimary }]}>
             Do you have staff?
           </Text>
@@ -200,9 +196,7 @@ export default function ShopSetupScreen() {
               { backgroundColor: colors.card, borderColor: colors.border },
             ]}
           >
-            <Text
-              style={[styles.modalTitle, { color: colors.textPrimary }]}
-            >
+            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
               Select Category
             </Text>
             <FlatList

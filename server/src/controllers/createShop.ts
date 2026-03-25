@@ -7,21 +7,22 @@ export async function createShop(req: express.Request, res: express.Response) {
     const token = req.headers.authorization?.split("Bearer ")[1];
 
     if (!token) {
-      res.status(401).send("Unauthorized");
-      return;
+      return res.status(401).send("Unauthorized");
     }
 
     const decoded = await auth.verifyIdToken(token);
     const uid = decoded.uid;
-    const shopId = uuidv4();
 
-    const { shopName , category, hasStaff } = req.body;
+    // WHY: Always fetch latest user data instead of trusting token
+    const userRecord = await auth.getUser(uid);
+    const phoneNumber = userRecord.phoneNumber || null;
+
+    const shopId = uuidv4();
+    const { shopName, category, hasStaff } = req.body;
 
     if (!shopName) {
-      res.status(400).send("Shop name required");
-      return;
+      return res.status(400).send("Shop name required");
     }
-    
 
     await db.collection("shops").doc(uid).set({
       shopName,
@@ -29,12 +30,12 @@ export async function createShop(req: express.Request, res: express.Response) {
       category,
       hasStaff,
       ownerUid: uid,
+      phoneNumber, 
       createdAt: new Date(),
       isSetupComplete: true,
     });
 
     res.json({ success: true });
-    // console.log(`Shop created for user ${uid} with name "${shopName}"`);
 
   } catch (err) {
     console.error(err);

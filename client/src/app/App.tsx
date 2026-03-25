@@ -9,6 +9,7 @@ import { NavigationContainer } from "@react-navigation/native";
 // --- Internal Modules ---
 import { GlobalLoadingProvider } from "../shared/provider/GlobalLoadingProvider";
 import RootNavigator from "../Navigator/RootNavigator";
+import { AuthProvider } from "../shared/provider/AuthContextProvider";
 import { AppThemeProvider } from "../shared/provider/AppThemeProvider";
 import { ToastProvider } from "../ui/toast/ToastProvider";
 import { ItemsProvider } from "../shared/provider/ItemsContext";
@@ -30,21 +31,22 @@ export default function App() {
 
   return (
     <>
-      {/* THEME PROVIDER: 
-              Provides theme context to the entire app, allowing for dynamic theming. 
+      {/* THEME PROVIDER:
+              Provides theme context to the entire app, allowing for dynamic theming.
           */}
-          
+
       <AppThemeProvider>
+        <AuthProvider>
         <ToastProvider>
           <ItemsProvider>
         <NavigationContainer>
-          {/* STATUS BAR: 
-            Controls the clock, battery, and signal icons at the top of the screen. 
+          {/* STATUS BAR:
+            Controls the clock, battery, and signal icons at the top of the screen.
         */}
           <StatusBar style={statusBarStyle} />
 
-          {/* ROUTING: 
-            The gateway to all screens (Home, Profile, etc.). 
+          {/* ROUTING:
+            The gateway to all screens (Home, Profile, etc.).
         */}
           <GlobalLoadingProvider>
             <RootNavigator />
@@ -52,6 +54,7 @@ export default function App() {
         </NavigationContainer>
         </ItemsProvider>
         </ToastProvider>
+        </AuthProvider>
       </AppThemeProvider>
     </>
   );

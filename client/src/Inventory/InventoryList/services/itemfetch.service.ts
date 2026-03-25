@@ -32,8 +32,6 @@ export async function fetchShop() {
 
   const data = await res.json();
 
-  console.log("data hai ji",data);
-  
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch shop");
   }
@@ -41,3 +39,44 @@ export async function fetchShop() {
   return data;
 }
 
+export async function updateItem(itemId: string, updates: any) {
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_URL}/items/${itemId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(updates),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.error || "Failed to update item");
+  }
+
+  return data;
+}
+
+export async function deleteItem(itemId: string, shopId: string) {
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_URL}/items/${itemId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ shopId }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.error || "Failed to delete item");
+  }
+
+  return data;
+}

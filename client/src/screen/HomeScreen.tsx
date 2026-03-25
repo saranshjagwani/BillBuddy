@@ -5,14 +5,16 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import type { Item } from "../shared/provider/ItemsContext";
 
-type AppStackParamList = {
-  AddStockPage: undefined;
+export type AppStackParamList = {
+   AddStockPage: { item?: Item };
   AddStockScreen1: undefined;
-  ShopSetup: undefined;
+  ShopSetupScreen: undefined;
   HomeScreen: undefined;
   InventoryListPage: undefined;
   BillingPage: undefined;
+  BillHistoryPage: undefined;
 };
 
 type Nav = StackNavigationProp<AppStackParamList, "HomeScreen">;
@@ -70,7 +72,7 @@ export default function HomeScreen() {
           <Text style={[styles.cardArrow, styles.cardArrowDark]}>→</Text>
         </TouchableOpacity>
 
-        {/* Billing ← NEW */}
+        {/* Billing */}
         <TouchableOpacity
           style={[styles.card, styles.cardBilling]}
           onPress={() => navigation.navigate("BillingPage")}
@@ -90,6 +92,26 @@ export default function HomeScreen() {
           <Text style={[styles.cardArrow, styles.cardArrowDark]}>→</Text>
         </TouchableOpacity>
 
+        {/* Bill History ← NEW */}
+        <TouchableOpacity
+          style={[styles.card, styles.cardHistory]}
+          onPress={() => navigation.navigate("BillHistoryPage")}
+          activeOpacity={0.85}
+        >
+          <View style={[styles.cardIcon, styles.cardIconHistory]}>
+            <Text style={[styles.cardIconText, { color: "#A78BFA" }]}>📋</Text>
+          </View>
+          <View style={styles.cardContent}>
+            <Text style={[styles.cardTitle, styles.cardTitleDark]}>
+              Bill History
+            </Text>
+            <Text style={[styles.cardDescription, styles.cardDescriptionDark]}>
+              View, download and share past bills
+            </Text>
+          </View>
+          <Text style={[styles.cardArrow, styles.cardArrowDark]}>→</Text>
+        </TouchableOpacity>
+
       </View>
 
       <Text style={styles.footer}>Tap a card to get started</Text>
@@ -102,7 +124,7 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: "#0A0A0A",
     paddingHorizontal: 24, paddingTop: 60,
   },
-  header: { marginBottom: 48 },
+  header: { marginBottom: 40 },
   greeting: {
     fontSize: 14, color: "#666", letterSpacing: 1,
     textTransform: "uppercase", marginBottom: 8, fontWeight: "500",
@@ -123,9 +145,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#1A1A1A",
     borderWidth: 1, borderColor: "#2A2A2A",
   },
-  cardBilling: {                          // ← NEW
+  cardBilling: {
     backgroundColor: "#0D2150",
     borderWidth: 1, borderColor: "#1E63D5",
+  },
+  cardHistory: {
+    backgroundColor: "#13092A",
+    borderWidth: 1, borderColor: "#6D28D9",
   },
 
   cardIcon: {
@@ -134,7 +160,8 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   cardIconDark: { backgroundColor: "#2A2A2A" },
-  cardIconBilling: { backgroundColor: "#1E3A7A" }, // ← NEW
+  cardIconBilling: { backgroundColor: "#1E3A7A" },
+  cardIconHistory: { backgroundColor: "#2E1065" },
 
   cardIconText: { fontSize: 22, color: "#000", fontWeight: "700" },
   cardContent: { flex: 1 },
@@ -150,6 +177,6 @@ const styles = StyleSheet.create({
 
   footer: {
     textAlign: "center", color: "#333",
-    fontSize: 13, marginTop: 40, letterSpacing: 0.5,
+    fontSize: 13, marginTop: 32, letterSpacing: 0.5,
   },
 });

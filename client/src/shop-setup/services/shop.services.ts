@@ -53,7 +53,8 @@ export async function fetchShop() {
   });
 
   const data = await res.json();
-  
+  console.log("Response from fetchShop", data);
+
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch shop");
   }

@@ -13,11 +13,12 @@ import {
   ActivityIndicator,
   SafeAreaView,
 } from "react-native";
-import { useAppTheme } from "../../shared/provider/AppThemeProvider"; 
+import { useAppTheme } from "../../shared/provider/AppThemeProvider";
 import { useNavigation } from "@react-navigation/native";
 import type { AddStockScreenProps } from "../types/AddStockScreenProps";
 import  useAddItem  from "../hooks/useAddItem";
 import { PRODUCT_UNITS } from "../hooks/useAddItem";
+import useUpdateItem from "../hooks/useEditItem";
 
 
 
@@ -27,32 +28,53 @@ import { PRODUCT_UNITS } from "../hooks/useAddItem";
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
-export default function AddStockScreen({
-  onCancel,
+/**
+ * AddStockScreen is a screen for adding or editing a stock item.
+ * It takes an onCancel function and an optional item object as props.
+ * If an item object is provided, it will be in edit mode.
+ * The screen contains a form with fields for item name, unit, selling price, and current stock.
+ * It also contains a save button which will call the onCancel function when pressed.
+ * If the item is valid, it will be added or updated in the database.
+ * If the item is invalid, it will display the errors in the form.
+ * If the item is in edit mode, the screen will pre-fill the form with the existing item data.
+  **/
+export default function AddStockScreen1({
+    onCancel,
+   item,
 }: AddStockScreenProps) {
   const navigation = useNavigation();
   const { theme } = useAppTheme();
   const colors = theme.colors;
 
-  const { itemName, unit, sellingPrice, currentStock, setItemName, setUnit, setSellingPrice, setCurrentStock, errors, loading, handleSave ,clearError } = useAddItem();
+  const isEditMode = !!item;
 
-  
-    // const handleSubmit = async () => {
-    //   console.log("Submitting with values:", { itemName, unit, sellingPrice, currentStock });
-    //   const success = await handleSave();
-    //   if (success) {
-    //     navigation.navigate("AdditionalScreen" as never);
-    //   } else {
-    //     // Optionally, you can show a toast or alert here indicating failure
-    //   } 
-    // };
+const addHook = useAddItem();
+const editHook = item ? useUpdateItem(item, onCancel || (() => {})) : null;
+
+// ✅ Use one source
+const {
+  itemName,
+  unit,
+  sellingPrice,
+  currentStock,
+  setItemName,
+  setUnit,
+  setSellingPrice,
+  setCurrentStock,
+  errors,
+  loading,
+  clearError,
+  handleSave,
+} = isEditMode ? editHook! : addHook;
+
+
 
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <KeyboardAvoidingView
         style={{ flex: 1}}
-       
+
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         {/* Header */}
@@ -75,7 +97,7 @@ export default function AddStockScreen({
             <View style={styles.sideSlot} />
           )}
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-            Add Stock
+           {isEditMode ? "Edit Item" : "Add Stock"}
           </Text>
           <View style={styles.sideSlot} />
         </View>
@@ -237,7 +259,7 @@ export default function AddStockScreen({
               backgroundColor: colors.background,
               borderTopColor: colors.border,
             },
-            
+
           ]}
         >
           <TouchableOpacity
@@ -249,7 +271,7 @@ export default function AddStockScreen({
             {loading ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
-              <Text style={styles.saveBtnText}>Save Item</Text>
+              <Text style={styles.saveBtnText}>{isEditMode ? "Update" : "Save"}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -514,7 +536,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
-    
+
   },
   modalSheet: {
     width: "100%",

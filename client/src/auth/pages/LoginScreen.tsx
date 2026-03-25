@@ -10,7 +10,7 @@ export default function Login() {
 
   function handleSuccess(user: FirebaseAuthTypes.User) {
     console.log("Signed in:", user.uid);
-    navigation.navigate("Home");
+    // navigation.navigate("Home");
   }
 
   if (login.confirmation) {

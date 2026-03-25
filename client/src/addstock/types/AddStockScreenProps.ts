@@ -1,3 +1,5 @@
+import type { Item } from "../../shared/provider/ItemsContext";
+
 export interface AddStockPayload {
   itemName: string;
   unit: string;
@@ -5,7 +7,7 @@ export interface AddStockPayload {
   currentStock: string;
 }
 
-export interface AddStockScreenProps {
-  onSave?: (payload: AddStockPayload) => Promise<void> | void;
+export type AddStockScreenProps = {
   onCancel?: () => void;
-}
+  item?: Item; // 👈 NEW
+};

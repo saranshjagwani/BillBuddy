@@ -84,8 +84,6 @@ export default function useOtp(
           showToast("success", "Phone number verified successfully!");
           onSuccess(result.user);
         }
-        // if no result.user, onAuthStateChanged will still fire
-        // and RootNavigator switches automatically
       } catch (error) {
         // ✅ only real errors reach here now
         console.error("OTP Error:", error); // ← add this first to see real error

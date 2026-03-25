@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, StyleSheet, SafeAreaView } from "react-native";
 import CustomerDetails, { CustomerInfo } from "../components/CustomerDetails";
 import AddEditItem, { BillItem as BillItemType } from "../components/AddItem";
@@ -7,6 +7,14 @@ import BillBar from "../components/BillBar";
 import EmptyBill from "../components/EmptyList";
 import AddItemButton from "../components/AddItemButton";
 import { generateBill } from "../services/Billing.service";
+import { useGlobalLoading } from "../../shared/provider/GlobalLoadingProvider";
+import { useToast } from "../../ui/toast/useToast";
+import { generatePDF } from "../services/pdfService";
+import { shareOnWhatsApp, downloadBill } from "../services/shareService";
+import BillSuccessModal from "../components/BillSuccessModal";
+import { fetchShop } from "../../shop-setup/services/shop.services";
+import { ShopInfo } from "../services/pdfService";
+import {getCurrentBillNumberApi} from "../../shared/services/Billingnumber.service"
 
 export default function BillingPage() {
   const [customer, setCustomer] = useState<CustomerInfo>({
@@ -14,23 +22,100 @@ export default function BillingPage() {
     phone: "",
   });
   const [billItems, setBillItems] = useState<BillItemType[]>([]);
+  const [billTotal,setbillTotal]=useState<number>(0);
   const [showAddItem, setShowAddItem] = useState(false);
   const [editingItem, setEditingItem] = useState<BillItemType | null>(null);
-  const [loading,setLoading]=useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  async function  onGenerate(){
-  setLoading(true);
+  const [successModal, setSuccessModal] = useState(false);
+  const [pdfPath, setPdfPath] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [billNo, setBillNo] = useState("");
+
+  const [shopDetails, setShopDetails] = useState<ShopInfo | null>(null);
+  const [billNumber, setBillNumber] = useState<string>("");
+
+const loadBillNumber = async () => {
   try {
-    const data = await generateBill(customer, billItems);
-    console.log("Bill generated:", data);
-    // navigate or show success
-  } catch (error) {
-    console.error(error);
-    // show error toast
-  } finally {
-    setLoading(false);
+    const number = await getCurrentBillNumberApi();
+    setBillNumber(number);
+  } catch (error: any) {
+    console.error("Bill number error:", error);
   }
-}
+};
+
+useEffect(() => {
+  loadBillNumber();
+}, []);
+
+
+
+  const fetchShopDetails = async () => {
+    try {
+      const shop = await fetchShop();
+
+      setShopDetails({
+        shopName: shop.shop.shopName,
+        phone: String(shop.phoneNumber || ""),
+        billNo:billNumber ,
+      });
+    } catch (error) {
+      console.error("Failed to fetch shop details:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchShopDetails();
+  }, []);
+
+  const { show, hide } = useGlobalLoading();
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (loading) {
+      show();
+    } else {
+      hide();
+    }
+
+    return () => {
+      hide();
+    };
+  }, [loading]);
+
+  async function onGenerate() {
+    setLoading(true);
+    setPdfLoading(true);
+    try {
+      await generateBill(customer, billItems);
+      if (!shopDetails) {
+        console.warn("Shop details not loaded yet");
+        return;
+      }
+
+      setPdfLoading(true);
+      try {
+        const path = await generatePDF(shopDetails, customer, billItems);
+
+        setPdfPath(path);
+        setBillNo(billNumber);
+        setSuccessModal(true);
+        setbillTotal(billItems.reduce((s, i) => s + i.total, 0));
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setPdfLoading(false);
+      }
+    } catch (error) {
+      console.error(error);
+      showToast("error", "Bill Generated Succesfully");
+    } finally {
+      setLoading(false);
+      setPdfLoading(false);
+      setBillItems([]);
+        setCustomer({ name: "", phone: "" });
+    }
+  }
 
   function handleSaveItem(item: BillItemType) {
     if (editingItem) {
@@ -112,7 +197,7 @@ export default function BillingPage() {
 
       {/* Add/Edit Modal */}
       <AddEditItem
-        key={editingItem?.itemId ?? "new"} 
+        key={editingItem?.itemId ?? "new"}
         visible={showAddItem}
         onClose={() => {
           setShowAddItem(false);
@@ -120,6 +205,20 @@ export default function BillingPage() {
         }}
         onSave={handleSaveItem}
         editItem={editingItem}
+      />
+      <BillSuccessModal
+        visible={successModal}
+        billNo={billNo}
+        amount={billTotal}
+        loading={pdfLoading}
+        onWhatsApp={() => pdfPath && shareOnWhatsApp(pdfPath, billNo)}
+        onDownload={() =>
+          pdfPath &&
+          downloadBill(pdfPath, billNo)
+            .then(() => showToast("success", "Saved The Bill In Downloads"))
+            .catch(() => showToast("error", "Could not save bill"))
+        }
+        onClose={() => setSuccessModal(false)}
       />
     </SafeAreaView>
   );

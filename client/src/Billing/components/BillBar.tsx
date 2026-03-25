@@ -47,6 +47,7 @@ export default function BillBar({ items, onGenerate }: Props) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#fff",
+    marginBottom:10,
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
     paddingHorizontal: 20, paddingTop: 18, paddingBottom: 32,
     shadowColor: "#000", shadowOpacity: 0.08,

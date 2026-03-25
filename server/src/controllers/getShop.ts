@@ -12,11 +12,14 @@ export async function getShop(req: express.Request, res: express.Response) {
 
     const decoded = await auth.verifyIdToken(token);
     const uid = decoded.uid;
+    console.log(`User ID is ${uid}`);
 
     const shopDoc = await db.collection("shops").doc(uid).get();
 
+
     if (!shopDoc.exists) {
-      return res.json({ shop: null });
+      console.log("Shop does not exist");
+      return res.json({ shop:null });
     }
 
     const shopData = shopDoc.data();
@@ -26,6 +29,7 @@ export async function getShop(req: express.Request, res: express.Response) {
     res.json({
       shop: shopData,
     });
+
 
   } catch (err) {
     console.error("Error fetching shop:", err);

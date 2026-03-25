@@ -1,18 +1,19 @@
-import { useEffect } from "react";
+import { useEffect,useState } from "react";
 
 import AuthNavigator from "./AuthNavigator";
 import AppNavigator from "./AppNavigator";
 import ShopNavigator from "./ShopNavigator";
 
-import useAuthState from "../auth/hooks/useAuth";
+import {useAuth} from "../shared/provider/AuthContextProvider";
 import { useGlobalLoading } from "../shared/provider/GlobalLoadingProvider";
+import { fetchShop } from "../shop-setup/services/shop.services";
+import type { ShopInfo } from "../Billing/services/pdfService";
 
 export default function RootNavigator() {
-  const { user, initializing, isShopSetupComplete ,checkingShop} = useAuthState();
+  const { user, initializing, isShopSetupComplete, checkingShop } =
+    useAuth();
 
   const { show, hide } = useGlobalLoading();
-
-  const isAuthenticated = !!user;
 
   useEffect(() => {
     if (initializing) {
@@ -22,24 +23,16 @@ export default function RootNavigator() {
     }
   }, [initializing]);
 
-  /**
-   * Prevent navigation rendering while auth + shop check is running.
-   * This avoids screen flicker between Auth / Shop / App navigators.
-   */
-  if (initializing || checkingShop) {
-    return null;
+  if (initializing && checkingShop) return null;
+
+  if (!user) return <AuthNavigator />;
+
+  if (!isShopSetupComplete) return <ShopNavigator />;
+
+  if (isShopSetupComplete && user ) {
+    console.log("Shop Setup Completed");
+    return <AppNavigator />;
   }
 
-  // Not logged in
-  if (!isAuthenticated) {
-    return <AuthNavigator />;
-  }
-
-  // Logged in but shop not created
-  if (!isShopSetupComplete) {
-    return <ShopNavigator />;
-  }
-
-  // Logged in and shop exists
-  return <AppNavigator />;
+  return null;
 }
