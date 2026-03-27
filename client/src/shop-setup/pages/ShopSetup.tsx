@@ -37,7 +37,7 @@ export default function ShopSetupScreen() {
   const { refetchShop} = useAuth();
 
   const [shopName, setShopName] = useState("");
-  const [category, setCategory] = useState("Grocery");
+  const [category, setCategory] = useState(CATEGORIES[0]);
   const [hasStaff, setHasStaff] = useState(true);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [loading, setLoading] = useState(false);

@@ -12,11 +12,12 @@ import { useToast } from "../../ui/toast/useToast";
 import { generatePDF } from "../services/pdfService";
 import { shareOnWhatsApp, downloadBill } from "../services/shareService";
 import BillSuccessModal from "../components/BillSuccessModal";
-import { fetchShop } from "../../shop-setup/services/shop.services";
-import { ShopInfo } from "../services/pdfService";
-import {getCurrentBillNumberApi} from "../../shared/services/Billingnumber.service"
+import {getCurrentBillNumberApi} from "../../shared/services/Billingnumber.service";
+import { ShopDetails } from "../../shared/provider/AuthContextProvider";
+import { useAuth } from "../../shared/provider/AuthContextProvider";
 
 export default function BillingPage() {
+  const {shopData}=useAuth();
   const [customer, setCustomer] = useState<CustomerInfo>({
     name: "",
     phone: "",
@@ -32,44 +33,17 @@ export default function BillingPage() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [billNo, setBillNo] = useState("");
 
-  const [shopDetails, setShopDetails] = useState<ShopInfo | null>(null);
-  const [billNumber, setBillNumber] = useState<string>("");
-
-const loadBillNumber = async () => {
-  try {
-    const number = await getCurrentBillNumberApi();
-    setBillNumber(number);
-  } catch (error: any) {
-    console.error("Bill number error:", error);
-  }
-};
-
-useEffect(() => {
-  loadBillNumber();
-}, []);
+  const [shopDetails, setShopDetails] = useState<ShopDetails| null>(null);
 
 
 
-  const fetchShopDetails = async () => {
-    try {
-      const shop = await fetchShop();
-
-      setShopDetails({
-        shopName: shop.shop.shopName,
-        phone: String(shop.phoneNumber || ""),
-        billNo:billNumber ,
-      });
-    } catch (error) {
-      console.error("Failed to fetch shop details:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchShopDetails();
-  }, []);
 
   const { show, hide } = useGlobalLoading();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    setShopDetails(shopData);
+  }, [shopData]);
 
   useEffect(() => {
     if (loading) {
@@ -83,39 +57,53 @@ useEffect(() => {
     };
   }, [loading]);
 
-  async function onGenerate() {
-    setLoading(true);
-    setPdfLoading(true);
-    try {
-      await generateBill(customer, billItems);
-      if (!shopDetails) {
-        console.warn("Shop details not loaded yet");
-        return;
-      }
+async function onGenerate() {
+  setLoading(true);
 
-      setPdfLoading(true);
-      try {
-        const path = await generatePDF(shopDetails, customer, billItems);
+  try {
+    // 1. Create bill (SOURCE OF TRUTH)
+    const res = await generateBill(customer, billItems);
 
-        setPdfPath(path);
-        setBillNo(billNumber);
-        setSuccessModal(true);
-        setbillTotal(billItems.reduce((s, i) => s + i.total, 0));
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setPdfLoading(false);
-      }
-    } catch (error) {
-      console.error(error);
-      showToast("error", "Bill Generated Succesfully");
-    } finally {
-      setLoading(false);
-      setPdfLoading(false);
-      setBillItems([]);
-        setCustomer({ name: "", phone: "" });
+
+    if (!res?.billNumber) {
+      throw new Error("Bill number generate nahi hua");
     }
+
+    const newBillNo = res.billNumber;
+
+    // 2. Validate shop
+    if (!shopDetails) {
+      throw new Error("Shop details missing");
+    }
+
+    // 3. Generate PDF using CORRECT billNo
+    setPdfLoading(true);
+
+    const path = await generatePDF(
+      shopDetails,
+      newBillNo,
+      customer,
+      billItems
+    );
+
+    // 4. UI updates
+    setPdfPath(path);
+    setBillNo(newBillNo);
+    setSuccessModal(true);
+    setbillTotal(billItems.reduce((s, i) => s + i.total, 0));
+
+    // 5. Reset state
+    setBillItems([]);
+    setCustomer({ name: "", phone: "" });
+
+  } catch (error) {
+    console.error("[BILL FLOW FAILED]", error);
+    showToast("error", "Bill generate nahi hua");
+  } finally {
+    setLoading(false);
+    setPdfLoading(false);
   }
+}
 
   function handleSaveItem(item: BillItemType) {
     if (editingItem) {
@@ -125,17 +113,7 @@ useEffect(() => {
     } else {
       const exists = billItems.find((i) => i.itemId === item.itemId);
       if (exists) {
-        setBillItems((prev) =>
-          prev.map((i) =>
-            exists
-              ? {
-                  ...i,
-                  quantity: i.quantity + item.quantity,
-                  total: i.total + item.total,
-                }
-              : i,
-          ),
-        );
+        showToast("warning", "Item already exists");
       } else {
         setBillItems((prev) => [...prev, item]);
       }

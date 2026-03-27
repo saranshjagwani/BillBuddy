@@ -92,7 +92,8 @@ export async function createBill(req: express.Request, res: express.Response) {
         const discount = Number(item.discount || 0);
 
         const itemSubtotal = basePrice * quantity;
-        const itemDiscount = discount * quantity;
+        const itemDiscount = discount>itemSubtotal ? itemSubtotal: discount ;
+
         const finalPrice = Math.max(0, basePrice * quantity - discount);
 
         subtotal += itemSubtotal;
@@ -177,10 +178,11 @@ export async function createBill(req: express.Request, res: express.Response) {
         });
       }
 
-      return bill;
+      return billNumber;
     });
 
-    return res.status(201).json({ success: true, bill: billData });
+    console.log("Backend se aaya bill no",billData);
+    return res.status(201).json({ success: true, billNumber: billData });
 
   } catch (error: any) {
     console.error("Error creating bill:", error);

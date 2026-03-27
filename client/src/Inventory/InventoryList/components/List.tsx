@@ -48,7 +48,7 @@ export default function ItemsScreen({ items, loading }: ItemScreen) {
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.heading}>Inventory</Text>
-        <Text style={styles.itemCount}>{items.length} Items</Text>
+        <Text style={styles.itemCount}>{items.length} items</Text>
       </View>
 
       <FlatList
@@ -58,19 +58,14 @@ export default function ItemsScreen({ items, loading }: ItemScreen) {
           const isLowStock = parseInt(item.currentStock) <= 5;
           return (
             <View style={styles.card}>
-              <View style={styles.content}>
-                <View style={styles.left}>
-                  <Text style={styles.name} numberOfLines={1}>
-                    {item.itemName}
-                  </Text>
-                  <Text style={styles.sku}>
-                    ID: {item.itemId.slice(-6).toUpperCase()}
-                  </Text>
-                </View>
 
+              {/* Main content */}
+              <View style={styles.content}>
+                <Text style={styles.name} numberOfLines={2}>
+                  {item.itemName}
+                </Text>
                 <View style={styles.right}>
                   <Text style={styles.price}>₹{item.sellingPrice}</Text>
-
                   <View
                     style={[
                       styles.stockBadge,
@@ -80,9 +75,7 @@ export default function ItemsScreen({ items, loading }: ItemScreen) {
                     <Text
                       style={[
                         styles.stockText,
-                        isLowStock
-                          ? styles.lowStockText
-                          : styles.normalStockText,
+                        isLowStock ? styles.lowStockText : styles.normalStockText,
                       ]}
                     >
                       {item.currentStock} in stock
@@ -91,25 +84,27 @@ export default function ItemsScreen({ items, loading }: ItemScreen) {
                 </View>
               </View>
 
-              {/* ✅ Clean Action Column */}
-              <View style={styles.actionColumn}>
+              {/* Edit column */}
+              <View style={styles.editColumn}>
                 <TouchableOpacity
-                  style={styles.actionButton}
+                  style={styles.editBtn}
                   onPress={() => navigation.navigate("AddStockPage", { item })}
+                  activeOpacity={0.7}
                 >
-                  <Feather name="edit-3" size={18} color="#2563EB" />
+                  <Feather name="edit-3" size={15} color="#2563EB" />
                 </TouchableOpacity>
-
-                <View style={styles.stripDivider} />
-
-
               </View>
-               <DeleteItem
+
+              {/* Delete column */}
+              <View style={styles.deleteColumn}>
+                <DeleteItem
                   itemId={item.itemId}
                   shopId={shopId}
                   itemName={item.itemName}
                   onDeleted={() => {}}
                 />
+              </View>
+
             </View>
           );
         }}
@@ -123,7 +118,7 @@ export default function ItemsScreen({ items, loading }: ItemScreen) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC", // Cleaner, modern off-white
+    backgroundColor: "#F8FAFC",
     paddingTop: 20,
   },
   headerRow: {
@@ -134,145 +129,116 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heading: {
-    fontSize: 24,
-    fontWeight: "800",
+    fontSize: 22,
+    fontWeight: "700",
     color: "#1E293B",
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   itemCount: {
-    fontSize: 14,
-    color: "#64748B",
-    fontWeight: "600",
-  },
-
-  sku: {
-    fontSize: 12,
-    color: "#94A3B8",
-    fontFamily: "System", // Use monospace if available
-  },
-  actionColumn: {
-    width: 50,
-    backgroundColor: "#F8FAFC",
-    borderLeftWidth: 1,
-    borderLeftColor: "#F1F5F9",
-    justifyContent: "space-evenly",
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  actionIcon: {
-    padding: 4,
-  },
-  iconDivider: {
-    height: 1,
-    width: "40%",
-  },
-  emptyText: {
-    marginTop: 12,
-    fontSize: 16,
+    fontSize: 13,
     color: "#94A3B8",
     fontWeight: "500",
   },
   list: {
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: 40,
   },
+
+  // Card row: content | edit | delete
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
     marginBottom: 10,
     flexDirection: "row",
-    // Shadow for "Floating" feel
+    alignItems: "stretch",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
     elevation: 2,
     borderWidth: 1,
     borderColor: "#F1F5F9",
+    overflow: "hidden",
   },
+
+  // Left: item info
   content: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  left: {
-    flex: 1,
-  },
   name: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1E293B",
-    marginBottom: 6,
-  },
-  idBadge: {
-    backgroundColor: "#F1F5F9",
-    alignSelf: "flex-start",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  idText: {
-    fontSize: 10,
-    color: "#64748B",
+    flex: 1,
+    fontSize: 15,
     fontWeight: "600",
-    letterSpacing: 0.5,
+    color: "#1E293B",
+    marginRight: 8,
   },
   right: {
     alignItems: "flex-end",
+    gap: 5,
   },
   price: {
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: 16,
+    fontWeight: "700",
     color: "#0F172A",
-    marginBottom: 4,
   },
   stockBadge: {
-    flexDirection: "row",
-    alignItems: "center",
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 20, // Capsule style
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
+    paddingVertical: 3,
+    borderRadius: 20,
   },
   normalStockBg: { backgroundColor: "#F0FDF4" },
   lowStockBg: { backgroundColor: "#FEF2F2" },
   stockText: {
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: "600",
   },
   normalStockText: { color: "#16A34A" },
   lowStockText: { color: "#DC2626" },
 
-  /* Action Strip Styles */
-  actionStrip: {
-    width: 50,
-    backgroundColor: "#FAFBFC",
+  // Edit column
+  editColumn: {
+    width: 48,
     borderLeftWidth: 1,
     borderLeftColor: "#F1F5F9",
-    justifyContent: "center",
-  },
-  actionButton: {
-    height: 50,
-    width: 50,
-    justifyContent: "center",
+    backgroundColor: "#F8FAFC",
     alignItems: "center",
+    justifyContent: "center",
   },
-  stripDivider: {
-    height: 1,
-    backgroundColor: "#F1F5F9",
-    marginHorizontal: 12,
+  editBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
   },
+
+  // Delete column
+  deleteColumn: {
+    width: 48,
+    borderLeftWidth: 1,
+    borderLeftColor: "#F1F5F9",
+    backgroundColor: "#F8FAFC",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  // Empty & loading
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  emptyText: {
+    marginTop: 12,
+    fontSize: 15,
+    color: "#94A3B8",
+    fontWeight: "500",
   },
 });

@@ -1,24 +1,28 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { createItem } from "../services/item.service";
-import useShop from "../../shop-setup/hooks/useShop";
 import { useToast } from "../../ui/toast/useToast";
+import { useAuth } from "../../shared/provider/AuthContextProvider";
 
+export const DEFAULT_UNITS_BY_CATEGORY: Record<string, string[]> = {
+  "Grocery / Kirana": ["Kg", "Gram", "Litre", "Piece", "Packet", "Box"],
 
-export const PRODUCT_UNITS = [
-  "Bottle",
-  "Piece",
-  "Kg",
-  "Gram",
-  "Litre",
-  "ML",
-  "Box",
-  "Pack",
-  "Dozen",
-  "Metre",
-  "Other",
-];
+  "Pharmacy / Medical Store": ["Tablet", "Capsule", "Strip", "Bottle", "Piece"],
 
+  "General Store": ["Piece", "Pack", "Box"],
 
+  "Clothing / Fashion": ["Piece", "Set"],
+
+  "Electronics / Mobile Shop": ["Piece", "Box"],
+
+  "Dairy / Bakery": ["Litre", "Piece", "Kg","Pound"],
+
+  "Hardware Store": ["Piece", "Kg", "Metre"],
+
+  "Beauty & Cosmetics": ["Piece", "Bottle", "Pack"],
+
+  "Restaurant / Food Outlet": ["Plate", "Piece", "Kg"],
+  Other: ["Piece", "Kg", "Gram", "Litre", "ML", "Pack", "Box"],
+};
 
 type SavePayload = {
   shopId: string;
@@ -29,29 +33,38 @@ type SavePayload = {
 };
 
 export default function useAddItem() {
-  const { shop } = useShop();
   const { showToast } = useToast();
+  const { shopData } = useAuth();
 
-  const shopId = shop?.shopId || null;
+  const units = useMemo(() => {
+    console.log("ShopData units ke lie", shopData);
+    if (!shopData?.category) {
+      console.log("Shop category not found");
+      return ["Piece"];
+    }
+
+    return DEFAULT_UNITS_BY_CATEGORY[shopData.category] || ["Piece"];
+  }, [shopData]);
+
+  const shopId = shopData?.shopId || null;
   console.log("Shop ID in useAddItem:", shopId);
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [itemName, setItemName] = useState("");
-  const [unit, setUnit] = useState(PRODUCT_UNITS[0]);
+  const [unit, setUnit] = useState("Piece");
   const [sellingPrice, setSellingPrice] = useState("");
   const [currentStock, setCurrentStock] = useState("");
 
   function clearError(field: string) {
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   }
 
   function validate() {
     const newErrors: Record<string, string> = {};
-
 
     if (!itemName.trim()) {
       newErrors.itemName = "Item name is required";
@@ -72,47 +85,46 @@ export default function useAddItem() {
     return Object.keys(newErrors).length === 0;
   }
 
- async function handleSave() {
-  if (!validate()) return;
+  async function handleSave() {
+    if (!validate()) return;
 
-  if (!shopId) {
-    console.error("Shop not loaded yet");
-    return;
+    if (!shopId) {
+      console.error("Shop not loaded yet");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const payload: SavePayload = {
+        shopId,
+        itemName,
+        unit,
+        sellingPrice,
+        currentStock,
+      };
+
+      console.log("Creating item:", payload);
+
+      await createItem(payload);
+
+      showToast("success", "Item added successfully!");
+
+      // Clear form
+      setItemName("");
+      setUnit("Piece");
+      setSellingPrice("");
+      setCurrentStock("");
+    } catch (err) {
+      console.error("AddItem error:", err);
+      showToast("error", "Failed to add item. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
-
-  try {
-    setLoading(true);
-
-    const payload: SavePayload = {
-      shopId,
-      itemName,
-      unit,
-      sellingPrice,
-      currentStock,
-    };
-
-    console.log("Creating item:", payload);
-
-    await createItem(payload);
-
-    showToast("success", "Item added successfully!");
-
-    // Clear form
-    setItemName("");
-    setUnit(PRODUCT_UNITS[0]);
-    setSellingPrice("");
-    setCurrentStock("");
-
-  } catch (err) {
-    console.error("AddItem error:", err);
-    showToast("error", "Failed to add item. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-}
 
   return {
-    PRODUCT_UNITS,
+    units,
 
     itemName,
     unit,

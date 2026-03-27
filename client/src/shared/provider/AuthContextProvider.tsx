@@ -7,6 +7,7 @@ export type ShopDetails ={
   shopId:string,
   shopName:string,
   phoneNumber: string,
+  category?: string
 }
 
 // 1. Define the Global Shape
@@ -24,6 +25,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const auth = getAuth(getApp());
 
+
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [initializing, setInitializing] = useState(true);
@@ -37,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!auth.currentUser) return;
 
     setCheckingShop(true);
+
     try {
       const data = await fetchShop();
       console.log("Data From The Auth pr", data);
@@ -44,7 +48,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setShopData({
           shopId:data?.shop?.shopId,
           shopName:data?.shop?.shopName,
-          phoneNumber:data?.shop?.phoneNumber
+          phoneNumber:data?.shop?.phoneNumber,
+          category:data?.shop?.category
         })
     } catch (error) {
       console.error("[AuthContext] Refetch failed:", error);
@@ -72,7 +77,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setShopData({
           shopId:data?.shop?.shopId,
           shopName:data?.shop?.shopName,
-          phoneNumber:data?.shop?.phoneNumber
+          phoneNumber:data?.shop?.phoneNumber,
+          category:data?.shop?.category
         })
       } finally {
         setInitializing(false);

@@ -38,6 +38,7 @@ export type BillRecord = {
   totalAmount: number;
   paymentMode: string;
   createdAt: string;
+  isDeleted?: boolean;
 };
 
 export async function fetchBills(lastCreatedAt?: string): Promise<{

@@ -14,6 +14,7 @@ import { deleteItem } from "./src/controllers/deleteItem.ts";
 
 const app = express();
 
+
 app.use(express.json());
 
 app.post("/create-shop", createShop);
@@ -27,10 +28,22 @@ app.delete("/bills/:billId", deleteBill);
 app.get("/analytics/today", getTodayAnalytics);
 app.get("/bills/current-num", getCurrentBillNumber);
 app.put("/items/:itemId", updateItem);
-app.delete("/items/:itemId", deleteItem); 
+app.delete("/items/:itemId", deleteItem);
 
 
 
 app.listen(3000, () => {
-  console.log("Server running on port 3000");
+  console.log("✅ Server started");
+  process.on("exit", (code) => {
+  console.log("❌ Process exiting with code:", code);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("🔥 UNCAUGHT EXCEPTION:", err);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("🔥 UNHANDLED REJECTION:", reason);
+});
+
 });

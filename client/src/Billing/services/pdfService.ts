@@ -1,264 +1,532 @@
 import * as Sharing from "expo-sharing";
-import * as FileSystem from 'expo-file-system';
-import * as Print from 'expo-print';
-import { File, Directory, Paths } from "expo-file-system";
+import * as Print from "expo-print";
+import { File, Paths } from "expo-file-system";
+import type { ShopDetails } from "../../shared/provider/AuthContextProvider";
 
 import { BillItem } from "../components/AddItem";
 import { CustomerInfo } from "../components/CustomerDetails";
 
-export type ShopInfo = {
-  shopName: string;
-  phone: string;
-  billNo: string;
-};
+export function buildHTML(
+  shopData: ShopDetails | null,
+  billNo: string,
+  customer: CustomerInfo,
+  items: BillItem[],
+): string {
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const totalDiscount = items.reduce((sum, i) => sum + (i.discount || 0), 0);
+  const totalAmount = items.reduce((sum, i) => sum + (i.total || 0), 0);
+  const hasDiscount = totalDiscount > 0;
 
-function buildHTML(shop: ShopInfo, customer: CustomerInfo, items: BillItem[]): string {
-  // Data Logic
-  const subtotal = items.reduce((sum, i) => sum + (i.total || 0), 0);
-  const totalAmount = subtotal; // Adjust if taxes/discounts are needed
+  console.log("Aeji Bill Ka no.", billNo,"Yeh he ji");
 
-  const rows = items.map((item) => `
-    <tr>
-      <td class="item-name">${item.itemName}</td>
-      <td class="qty">${item.quantity} ${item.unit || ''}</td>
-      <td class="rate">₹${item.price}${item.unit ? ` / ${item.unit}` : ''}</td>
-      <td class="amount">₹${item.total}</td>
+  const now = new Date();
+  const dateFormatted = now.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const timeFormatted = now.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  // Generate a consistent accent color from shop name
+  const shopName = shopData?.shopName ?? "Shop";
+  const shopInitials = shopName
+    .split(" ")
+    .slice(0, 2)
+    .map((w: string) => w[0]?.toUpperCase() ?? "")
+    .join("");
+
+  // Deterministic color from shop name chars
+  const colorPalette = [
+    { bg: "#1D4ED8", light: "#EFF6FF", text: "#1E40AF" }, // Blue
+    { bg: "#7C3AED", light: "#F5F3FF", text: "#6D28D9" }, // Purple
+    { bg: "#0F766E", light: "#F0FDFA", text: "#0D7A6E" }, // Teal
+    { bg: "#BE185D", light: "#FDF2F8", text: "#9D174D" }, // Pink
+    { bg: "#0369A1", light: "#F0F9FF", text: "#075985" }, // Sky
+    { bg: "#166534", light: "#F0FDF4", text: "#14532D" }, // Green
+    { bg: "#9F1239", light: "#FFF1F2", text: "#881337" }, // Rose
+  ];
+  const colorIdx =
+    (shopName.charCodeAt(0) + (shopName.charCodeAt(1) || 0)) %
+    colorPalette.length;
+  const accent = colorPalette[colorIdx];
+
+  const hasCustomerName = customer?.name && customer.name.trim().length > 0;
+  const hasCustomerPhone = customer?.phone && customer.phone.trim().length > 0;
+
+  const rows = items
+    .map(
+      (item, index) => `
+    <tr class="${index % 2 === 0 ? "row-even" : "row-odd"}">
+      <td class="item-num">${index + 1}</td>
+      <td class="item-name">
+        <span class="item-title">${item.itemName}</span>
+      </td>
+      <td class="col-r">${item.quantity}</td>
+      <td class="col-r rate-cell">₹${item.price.toFixed(2)}${item.unit ? " / " + item.unit : ""}</td>
+      ${hasDiscount ? `<td class="col-r">${item.discount > 0 ? "− ₹" + item.discount.toFixed(2) : '<span class="nil">—</span>'}</td>` : ""}
+      <td class="col-r amount-cell">₹${item.total.toFixed(2)}</td>
     </tr>
-  `).join("");
+  `,
+    )
+    .join("");
 
-  return `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <style>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #F0F4F8;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            justify-content: center;
-            padding: 40px 0;
-            -webkit-print-color-adjust: exact;
-        }
+    .invoice-paper {
+      background: #ffffff;
+      width: 210mm;
+      min-height: 297mm;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.08);
+    }
 
-        .invoice-paper {
-            background: white;
-            width: 210mm; /* A4 Width */
-            min-height: 297mm;
-            padding: 60px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-            position: relative;
-        }
+    /* Colored top bar */
+    .top-bar {
+      background: ${accent.bg};
+      height: 5px;
+      width: 100%;
+    }
 
-        /* Header Section */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 40px;
-        }
+    .invoice-body {
+      padding: 48px 56px 130px;
+    }
 
-        .shop-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+    /* ── HEADER ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 36px;
+    }
 
-        .logo-circle {
-            width: 65px;
-            height: 65px;
-            background-color: #7A9E7E; /* Matching the olive green in image */
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 12px;
-        }
+    /* Shop logo block — initials only, no external image */
+    .brand { display: flex; align-items: center; gap: 18px; }
 
-        .logo-circle svg { width: 35px; fill: white; }
+    .logo-mark {
+      width: 58px;
+      height: 58px;
+      border-radius: 14px;
+      background: ${accent.bg};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
 
-        .shop-name { font-size: 22px; font-weight: 700; color: #1f2937; }
-        .shop-detail { font-size: 15px; color: #6b7280; }
+    .logo-initials {
+      font-size: ${shopInitials.length === 1 ? "26px" : "20px"};
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      font-family: 'Inter', sans-serif;
+    }
 
-        .bill-meta { text-align: right; }
-        .bill-meta h1 { font-size: 24px; color: #6b7280; font-weight: 400; margin-bottom: 8px; }
-        .invoice-id { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 6px; }
-        .date-time { font-size: 15px; color: #6b7280; }
+    .brand-text { display: flex; flex-direction: column; gap: 2px; }
 
-        /* Customer Section */
-        .customer-section {
-            border-top: 1px solid #f3f4f6;
-            padding: 20px 0;
-            margin-bottom: 20px;
-        }
-        .customer-label { font-size: 16px; color: #374151; font-weight: 600; }
-        .customer-name { font-weight: 400; }
-        .customer-phone { font-size: 15px; color: #6b7280; margin-top: 5px; display: block; }
+    .shop-name-text {
+      font-size: 21px;
+      font-weight: 800;
+      color: #0F172A;
+      letter-spacing: -0.4px;
+      line-height: 1.2;
+    }
 
-        /* Table Styling */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-        }
+    .shop-location {
+      font-size: 13px;
+      color: #94A3B8;
+      font-weight: 400;
+      margin-top: 2px;
+    }
 
-        thead th {
-            background-color: #f9fafb;
-            padding: 12px 15px;
-            text-align: left;
-            color: #374151;
-            font-size: 15px;
-            font-weight: 600;
-            border-bottom: 1px solid #f3f4f6;
-        }
+    .shop-phone-text {
+      font-size: 13px;
+      color: ${accent.text};
+      font-weight: 600;
+      margin-top: 1px;
+    }
 
-        tbody td {
-            padding: 16px 15px;
-            border-bottom: 1px solid #f9fafb;
-            font-size: 15px;
-            color: #111827;
-        }
+    /* Right side meta */
+    .bill-meta { text-align: right; }
 
-        .qty, .rate, .amount { text-align: right; }
-        .rate, .amount { width: 120px; }
-        .qty { width: 100px; }
-        .item-name { font-weight: 600; }
+    .invoice-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: ${accent.text};
+      margin-bottom: 6px;
+    }
 
-        /* Totals Section */
-        .totals-wrapper {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            margin-top: 20px;
-        }
+    .invoice-id {
+      font-size: 28px;
+      font-weight: 900;
+      color: #0F172A;
+      letter-spacing: -1px;
+      margin-bottom: 6px;
+    }
 
-        .total-row {
-            display: grid;
-            grid-template-columns: 150px 100px;
-            padding: 8px 0;
-            font-size: 16px;
-        }
+    .date-line {
+      font-size: 13px;
+      color: #94A3B8;
+    }
 
-        .total-row span:first-child { text-align: right; padding-right: 20px; color: #6b7280; }
-        .total-row span:last-child { text-align: right; font-weight: 600; }
+    .date-line strong {
+      color: #475569;
+      font-weight: 600;
+    }
 
-        .grand-total-highlight {
-            background-color: #f3f4f6;
-            padding: 12px 0;
-            margin-top: 10px;
-        }
+    /* ── THIN RULE ── */
+    .rule {
+      height: 1px;
+      background: #F1F5F9;
+      margin: 28px 0;
+    }
 
-        .grand-total-highlight span:last-child { font-size: 20px; font-weight: 700; }
+    /* ── CUSTOMER + CHIPS ROW ── */
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 32px;
+      gap: 20px;
+    }
 
-        /* Signature Section */
-        .signature-section {
-            margin-top: 80px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            padding-right: 20px;
-        }
+    .section-micro-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: #CBD5E1;
+      margin-bottom: 7px;
+    }
 
-        .handwritten {
-            font-family: 'Mr Dafoe', cursive;
-            font-size: 38px;
-            color: #1e293b;
-            border-bottom: 1px solid #d1d5db;
-            padding: 0 40px;
-            margin-bottom: 8px;
-        }
+    .customer-name-display {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0F172A;
+      margin-bottom: 3px;
+    }
 
-        .sign-name { font-weight: 700; font-size: 16px; color: #111827; }
+    .customer-phone-display {
+      font-size: 13px;
+      color: ${accent.text};
+      font-weight: 500;
+    }
 
-        /* Footer */
-        .footer {
-            position: absolute;
-            bottom: 60px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            border-top: 1px solid #f3f4f6;
-            padding-top: 20px;
-            color: #9ca3af;
-            font-size: 14px;
-        }
+    .no-detail {
+      font-size: 12px;
+      color: #E2E8F0;
+      font-style: italic;
+    }
 
-        .footer b { color: #4b5563; }
+    .walkin-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #F8FAFC;
+      border: 1px dashed #CBD5E1;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94A3B8;
+    }
 
-        @media print {
-            body { background: white; padding: 0; }
-            .invoice-paper { box-shadow: none; border: none; }
-        }
-    </style>
+    .chips { display: flex; gap: 10px; flex-shrink: 0; }
+
+    .chip {
+      background: ${accent.light};
+      border-radius: 10px;
+      padding: 10px 18px;
+      text-align: center;
+      min-width: 82px;
+    }
+
+    .chip-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: ${accent.text};
+      opacity: 0.7;
+      margin-bottom: 3px;
+    }
+
+    .chip-value {
+      font-size: 16px;
+      font-weight: 800;
+      color: ${accent.text};
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      background: ${accent.bg};
+      padding: 12px 14px;
+      text-align: left;
+      color: rgba(255,255,255,0.85);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    thead th.col-r { text-align: right; }
+    thead th.num-h { width: 32px; text-align: center; color: rgba(255,255,255,0.5); }
+    thead th.qty-h { width: 80px; }
+    thead th.rate-h { width: 115px; }
+    thead th.disc-h { width: 100px; }
+    thead th.amt-h { width: 115px; }
+
+    tbody td {
+      padding: 13px 14px;
+      font-size: 14px;
+      color: #1E293B;
+      border-bottom: 1px solid #F8FAFC;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    .row-even { background: #FFFFFF; }
+    .row-odd { background: #FAFBFF; }
+
+    .item-num { text-align: center; color: #CBD5E1; font-size: 12px; font-weight: 500; }
+    .item-title { font-weight: 600; color: #0F172A; font-size: 14px; }
+    .col-r { text-align: right; }
+    .rate-cell { color: #64748B; font-size: 13px; }
+    .amount-cell { font-weight: 700; color: #0F172A; }
+    .nil { color: #E2E8F0; }
+
+    /* ── TOTALS ── */
+    .totals-outer {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 44px;
+    }
+
+    .totals-box {
+      width: 270px;
+    }
+
+    .totals-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid #F1F5F9;
+      font-size: 14px;
+    }
+
+    .totals-line:last-of-type { border-bottom: none; }
+    .t-label { color: #64748B; font-weight: 500; }
+    .t-value { font-weight: 600; color: #0F172A; }
+    .t-value.red { color: #DC2626; }
+
+    .grand-box {
+      background: ${accent.bg};
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .grand-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.65);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .grand-value {
+      font-size: 22px;
+      font-weight: 900;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+    }
+
+    /* ── SIGNATURE ── */
+    .sig-section {
+      display: flex;
+      justify-content: flex-end;
+      padding-right: 2px;
+      margin-bottom: 48px;
+    }
+
+    .sig-block { text-align: center; }
+    .sig-line-draw { width: 140px; height: 1px; background: #CBD5E1; margin: 0 auto 8px; }
+    .sig-name-text { font-size: 13px; font-weight: 700; color: #374151; }
+    .sig-title-text { font-size: 11px; color: #94A3B8; margin-top: 2px; }
+
+    /* ── FOOTER ── */
+    .footer {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      border-top: 1px solid #F1F5F9;
+      padding: 16px 56px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FAFBFC;
+    }
+
+    .footer-left { font-size: 12px; color: #CBD5E1; }
+    .footer-left b { color: #94A3B8; }
+    .footer-right { font-size: 12px; color: #CBD5E1; }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .invoice-paper { box-shadow: none; }
+    }
+  </style>
 </head>
 <body>
-    <div class="invoice-paper">
-        <div class="header">
-            <div class="shop-info">
-                <div class="logo-circle">
-                    <svg viewBox="0 0 24 24"><path d="M21 15h-1.3c-.3 1.1-.7 2.1-1.3 3h2.6c.6 0 1 .4 1 1s-.4 1-1 1H4c-.6 0-1-.4-1-1s.4-1 1-1h2.6c-.6-.9-1-1.9-1.3-3H4c-.6 0-1-.4-1-1s.4-1 1-1h1.1c.4-3.4 2.7-6.2 5.9-7.1V3c0-.6.4-1 1-1s1 .4 1 1v1.9c3.2.9 5.5 3.7 5.9 7.1H20c.6 0 1 .4 1 1s-.4 1-1 1zM7.1 15h9.8c-.3-2.3-2.2-4-4.4-4s-4.1 1.7-4.4 4z"/></svg>
-                </div>
-                <div class="shop-name">${shop.shopName}</div>
-                <div class="shop-detail">${'Indore,India'}</div>
-                <div class="shop-detail">📞 ${shop.phone}</div>
-            </div>
-            <div class="bill-meta">
-                <h1>Invoice / Bill</h1>
-                <div class="invoice-id">${shop.billNo}</div>
-                <div class="date-time">18 Jul 2024 • 10:30 AM</div>
-            </div>
-        </div>
+  <div class="invoice-paper">
+    <div class="top-bar"></div>
+    <div class="invoice-body">
 
-        <div class="customer-section">
-            <div class="customer-label">Customer: <span class="customer-name">${customer.name || 'Walk In customer'}</span></div>
-            <span class="customer-phone">📞 ${customer.phone || 'N/A'}</span>
+      <!-- HEADER: Shop brand + Invoice number -->
+      <div class="header">
+        <div class="brand">
+          <div class="logo-mark">
+            <span class="logo-initials">${shopInitials}</span>
+          </div>
+          <div class="brand-text">
+            <div class="shop-name-text">${shopName}</div>
+            <div class="shop-location">Indore, India</div>
+            ${shopData?.phoneNumber ? `<div class="shop-phone-text"> ${shopData.phoneNumber}</div>` : ""}
+          </div>
         </div>
+        <div class="bill-meta">
+          <div class="invoice-label">Invoice / Bill</div>
+          <div class="invoice-id">#${billNo}</div>
+          <div class="date-line"><strong>${dateFormatted}</strong> &nbsp;•&nbsp; ${timeFormatted}</div>
+        </div>
+      </div>
 
+      <div class="rule"></div>
+
+      <!-- CUSTOMER + SUMMARY CHIPS -->
+      <div class="meta-row">
+        <div>
+          <div class="section-micro-label">Billed To</div>
+          ${
+            hasCustomerName
+              ? `<div class="customer-name-display">${customer.name}</div>
+               ${
+                 hasCustomerPhone
+                   ? `<div class="customer-phone-display">+91 ${customer.phone}</div>`
+                   : `<div class="no-detail">No phone recorded</div>`
+               }`
+              : `<div class="walkin-pill">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Walk-in Customer
+               </div>
+               <div class="no-detail" style="margin-top:5px;">No contact details recorded</div>`
+          }
+        </div>
+        <div class="chips">
+          <div class="chip">
+            <div class="chip-label">Items</div>
+            <div class="chip-value">${items.length}</div>
+          </div>
+          <div class="chip">
+            <div class="chip-label">Amount</div>
+            <div class="chip-value">₹${totalAmount.toFixed(0)}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEMS TABLE -->
+      <div class="table-wrap">
         <table>
-            <thead>
-                <tr>
-                    <th>Item Name</th>
-                    <th class="qty">Qty</th>
-                    <th class="rate">Rate</th>
-                    <th class="amount">Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${rows}
-            </tbody>
+          <thead>
+            <tr>
+              <th class="num-h">#</th>
+              <th>Item Name</th>
+              <th class="col-r qty-h">Qty</th>
+              <th class="col-r rate-h">Rate</th>
+              ${hasDiscount ? '<th class="col-r disc-h">Discount</th>' : ""}
+              <th class="col-r amt-h">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
         </table>
+      </div>
 
-        <div class="totals-wrapper">
-            <div class="total-row">
-                <span>Subtotal:</span>
-                <span>₹${subtotal}</span>
-            </div>
-            <div class="total-row">
-                <span>Total Amount:</span>
-                <span>₹${totalAmount}</span>
-            </div>
-            <div class="total-row grand-total-highlight">
-                <span>Total Amount:</span>
-                <span>₹${totalAmount}</span>
-            </div>
+      <!-- TOTALS -->
+      <div class="totals-outer">
+        <div class="totals-box">
+          <div class="totals-line">
+            <span class="t-label">Subtotal</span>
+            <span class="t-value">₹${subtotal.toFixed(2)}</span>
+          </div>
+          ${
+            hasDiscount
+              ? `
+          <div class="totals-line">
+            <span class="t-label">Discount</span>
+            <span class="t-value red">− ₹${totalDiscount.toFixed(2)}</span>
+          </div>`
+              : ""
+          }
+          <div class="grand-box">
+            <span class="grand-label">Total Amount</span>
+            <span class="grand-value">₹${totalAmount.toFixed(2)}</span>
+          </div>
         </div>
+      </div>
 
-        <div class="signature-section">
-            <div class="handwritten">${(shop.shopName ?? "Shop").split(" ")[0]}</div>
-            <div class="sign-name">${(shop.shopName ?? "Shop").split(" ")[0]}</div>
+      <!-- SIGNATURE -->
+      <div class="sig-section">
+        <div class="sig-block">
+          <div class="sig-line-draw"></div>
+          <div class="sig-name-text">${shopName.split(" ")[0]}</div>
+          <div class="sig-title-text">Authorized Signatory</div>
         </div>
+      </div>
 
-        <div class="footer">
-            Generated by: <b>BillBuddy AI</b>
-        </div>
     </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="footer-left">Powered by <b>BillBuddy</b></div>
+      <div class="footer-right">Thank you for shopping with <b>${shopName}</b> 🙏</div>
+    </div>
+  </div>
 </body>
-</html>
-  `;
+</html>`;
 }
 /**
  * WHY:
@@ -266,42 +534,94 @@ function buildHTML(shop: ShopInfo, customer: CustomerInfo, items: BillItem[]): s
  * Copy instead of move → more reliable across devices
  */
 export async function generatePDF(
-  shop: ShopInfo,
+  shopData: ShopDetails,
+  billNo: string,
   customer: CustomerInfo,
-  items: BillItem[]
+  items: BillItem[],
 ): Promise<string> {
-  console.log("Generating PDF");
+  console.log("[PDF] Start generation", { billNo });
+
+  let tempUri: string | null = null;
+
   try {
-    const html = buildHTML(shop, customer, items);
+    // 1. Build HTML
+    const html = buildHTML(shopData, billNo, customer, items);
 
     if (!html || typeof html !== "string") {
-      throw new Error("Invalid HTML content");
+      throw new Error("[PDF] HTML generation failed");
     }
 
-    const { uri } = await Print.printToFileAsync({ html });
+    // 2. Generate PDF
+    const result = await Print.printToFileAsync({ html });
 
-    if (!uri) {
-      throw new Error("PDF generation failed: URI is undefined");
+    if (!result?.uri) {
+      throw new Error("[PDF] Print returned invalid URI");
     }
 
-    const source = new File(uri);
+    tempUri = result.uri;
+
+    const source = new File(tempUri);
+
+    // ✅ FIX: exists is boolean
+    if (!source.exists) {
+      throw new Error("[PDF] Temp file does not exist");
+    }
 
     const destination = new File(
       Paths.document,
-      `invoice_${shop.billNo ?? "unknown"}.pdf`
+      `invoice_${billNo || "unknown"}.pdf`,
     );
 
-    // ─── Delete if already exists ──────────────────────────────────────────
-    if (await destination.exists) {
+    // ✅ FIX: exists is boolean
+    if (destination.exists) {
       await destination.delete();
     }
 
+    // 3. Copy
     await source.copy(destination);
 
-    return destination.uri;
+    // 4. Re-create destination instance (IMPORTANT)
+    const finalFile = new File(destination.uri);
+
+    if (!finalFile.exists) {
+      throw new Error("[PDF] Final file missing after copy");
+    }
+
+    // 5. Optional: size validation (if supported)
+    try {
+      const info = await finalFile.info?.();
+      if (info && info.size === 0) {
+        throw new Error("[PDF] Empty PDF generated");
+      }
+    } catch {
+      // Safe fallback: don't fail if info() not supported
+      console.warn("[PDF] Size check skipped");
+    }
+
+    console.log("[PDF] Success", { uri: finalFile.uri });
+
+    return finalFile.uri;
   } catch (error) {
-    console.error("PDF Error:", error);
-    throw error;
+    console.error("[PDF] FAILED", {
+      billNo,
+      error,
+    });
+
+    // ✅ FIX: cleanup without crashing
+    try {
+      if (tempUri) {
+        const tempFile = new File(tempUri);
+        if (tempFile.exists) {
+          await tempFile.delete();
+        }
+      }
+    } catch (cleanupError) {
+      console.warn("[PDF] Cleanup failed", cleanupError);
+    }
+
+    throw new Error(
+      "PDF generate nahi hua. Dobara try karo ya support se contact karo.",
+    );
   }
 }
 /**
@@ -309,11 +629,23 @@ export async function generatePDF(
  * Sharing wrapper (safe + simple)
  */
 export async function sharePDF(uri: string, billNo: string) {
+  console.log("[SHARE] Start", { uri, billNo });
+
   try {
+    if (!uri) {
+      throw new Error("[SHARE] Invalid URI");
+    }
+
+    const file = new File(uri);
+
+    if (!file.exists) {
+      throw new Error("[SHARE] File does not exist");
+    }
+
     const available = await Sharing.isAvailableAsync();
 
     if (!available) {
-      throw new Error("Sharing not available");
+      throw new Error("[SHARE] Sharing not available");
     }
 
     await Sharing.shareAsync(uri, {
@@ -321,8 +653,11 @@ export async function sharePDF(uri: string, billNo: string) {
       dialogTitle: `Bill ${billNo}`,
       UTI: "com.adobe.pdf",
     });
+
+    console.log("[SHARE] Success", { billNo });
   } catch (error) {
-    console.error("Share Error:", error);
-    throw new Error("Sharing failed");
+    console.error("[SHARE] FAILED", { billNo, error });
+
+    throw new Error("PDF share nahi hua. Dobara try karo.");
   }
 }

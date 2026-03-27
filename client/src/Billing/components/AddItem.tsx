@@ -34,7 +34,7 @@ export default function AddEditItem({
   visible,
   onClose,
   onSave,
-  editItem,
+  editItem
 }: Props) {
   const { items } = useItems();
   const {showToast}=useToast();
@@ -69,16 +69,54 @@ export default function AddEditItem({
 
     const numericValue = parseInt(value, 10);
 
+
     if (isNaN(numericValue) || numericValue < 1) {
       setQuantity("1");
       return;
     }
 
+
+
     const maxStock = selectedItem?.currentStock ?? 0;
-    
+
+     if(numericValue>maxStock){
+      showToast("warning", `Only ${maxStock} is available`);
+    }
+
     setQuantity(String(Math.min(numericValue, maxStock)));
-    showToast("warning", `Only ${maxStock} is available`);
+
   }
+
+  function handleDiscountChange(value: string) {
+  // 1. Allow empty while typing
+  if (value === "") {
+    setDiscount("");
+    return;
+  }
+
+  const numericValue = parseFloat(value);
+
+  // 2. Invalid or negative → reset
+  if (isNaN(numericValue) || numericValue < 0) {
+    setDiscount("0");
+    return;
+  }
+
+  // 3. Max discount = item total OR price * quantity
+  const maxDiscount = selectedItem
+    ? selectedItem.price * Number(quantity || 1)
+    : 0;
+
+  // 4. Warn if exceeding
+  if (numericValue > maxDiscount) {
+    showToast("warning", `Max discount ₹${maxDiscount} hi de sakte ho`);
+  }
+
+  // 5. Clamp value
+  const finalValue = Math.min(numericValue, maxDiscount);
+
+  setDiscount(String(finalValue));
+}
 
   // ── Suggestions ────────────────────────────────────────────────────────────
   const suggestions = useMemo(() => {
@@ -159,7 +197,7 @@ export default function AddEditItem({
 
         <View style={styles.sheet}>
           {/* Handle */}
-          <View style={styles.handle} />
+          <View  />
 
           {/* Header */}
           <View style={styles.header}>
@@ -198,6 +236,7 @@ export default function AddEditItem({
                   <Feather name="x" size={16} color="#94A3B8" />
                 </TouchableOpacity>
               )}
+
             </View>
 
             {/* Suggestions Dropdown */}
@@ -251,7 +290,7 @@ export default function AddEditItem({
                 <TextInput
                   style={styles.input}
                   value={discount}
-                  onChangeText={setDiscount}
+                  onChangeText={handleDiscountChange}
                   keyboardType="numeric"
                   placeholder="0"
                   placeholderTextColor="#94A3B8"
@@ -283,34 +322,32 @@ export default function AddEditItem({
 }
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: "flex-end" },
+  overlay: {
+  flex: 1,
+  justifyContent: "center",   // was "flex-end"
+  alignItems: "center",        // add this
+  paddingHorizontal: 20,       // add this for side margins
+},
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.4)",
   },
-  sheet: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    paddingBottom: 36,
-    maxHeight: "85%",
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#E5E7EB",
-    alignSelf: "center",
-    marginBottom: 16,
-  },
+sheet: {
+  backgroundColor: "#fff",
+  borderRadius: 20,            // was borderTopLeftRadius/borderTopRightRadius: 24
+  padding: 20,
+  paddingBottom: 20,           // was 36 (no extra bottom padding needed)
+  maxHeight: "75%",
+  width: "100%",               // add this so it fills the horizontal space
+},
+
 
   // Header
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 5,
   },
   title: { fontSize: 18, fontWeight: "700", color: "#0F172A" },
   closeBtn: {

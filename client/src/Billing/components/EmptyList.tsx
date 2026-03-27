@@ -20,7 +20,7 @@ export default function EmptyBill({ onAdd }: Props) {
 
       <TouchableOpacity style={styles.addBtn} onPress={onAdd}>
         <Feather name="plus" size={16} color="#0F172A" />
-        <Text style={styles.addBtnText}>+ Add Item</Text>
+        <Text style={styles.addBtnText}> Add Item</Text>
       </TouchableOpacity>
     </View>
   );

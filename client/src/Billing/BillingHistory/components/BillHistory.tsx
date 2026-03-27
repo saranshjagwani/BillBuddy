@@ -13,24 +13,28 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { fetchBills, BillRecord } from "../services/BillingHistory.service";
 import { fetchShop } from "../../../shop-setup/services/shop.services";
-import { generatePDF, sharePDF, ShopInfo } from "../../services/pdfService";
+import { generatePDF} from "../../services/pdfService";
 import { shareOnWhatsApp } from "../../services/shareService";
 import { undoBillApi } from "../services/BillingHistory.service";
 import { useToast } from "../../../ui/toast/useToast";
+import { useAuth } from "../../../shared/provider/AuthContextProvider";
 import { getTodayAnalyticsApi } from "../services/BillingHistory.service";
+import { ShopDetails } from "../../../shared/provider/AuthContextProvider";
+
 
 // ─── BillHistoryCard ──────────────────────────────────────────────────────────
 
 type CardProps = {
   bill: BillRecord;
-  shopDetails: ShopInfo;
 };
 
-function BillHistoryCard({ bill, shopDetails }: CardProps) {
+function BillHistoryCard({ bill }: CardProps) {
   const [expanded, setExpanded] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [undoLoading,setUndoLoading]=useState(false);
+  const [downloadLoading,setDownloadLoading]=useState(false);
   const [animation] = useState(new Animated.Value(0));
   const { showToast } = useToast();
+  const {shopData}=useAuth();
 
   const date = new Date(bill.createdAt).toLocaleDateString("en-IN", {
     day: "2-digit",
@@ -52,26 +56,26 @@ function BillHistoryCard({ bill, shopDetails }: CardProps) {
     setExpanded((p) => !p);
   }
   const handleUndo = async () => {
-    if (loading) return;
+    if (undoLoading) return;
 
-    setLoading(true);
+    setUndoLoading(true);
 
     try {
-      await undoBillApi(bill.billId);
+      await undoBillApi(bill?.billId);
       showToast("success", "Undo Done");
     } catch (error: any) {
       console.error("Undo error:", error);
       showToast("error", "Cannot Undo");
     } finally {
-      setLoading(false);
+      setUndoLoading(false);
     }
   };
 
   const handleDownload = async () => {
-    if (loading) return;
+    if (downloadLoading) return;
     console.log("Download is Started");
 
-    setLoading(true);
+    setDownloadLoading(true);
 
     try {
       // 🧾 Transform items safely
@@ -90,7 +94,8 @@ function BillHistoryCard({ bill, shopDetails }: CardProps) {
 
       // 📄 Generate PDF
       const path = await generatePDF(
-        { ...shopDetails, billNo: bill.billNumber },
+        shopData
+        ,bill.billNumber,
         {
           name: bill.customerName ?? "Customer",
           phone: bill.customerPhone ?? "",
@@ -107,7 +112,7 @@ function BillHistoryCard({ bill, shopDetails }: CardProps) {
     } catch (error: any) {
       console.error("Download error:", error);
     } finally {
-      setLoading(false);
+      setDownloadLoading(false);
     }
   };
 
@@ -130,7 +135,7 @@ function BillHistoryCard({ bill, shopDetails }: CardProps) {
         <View style={styles.headerLeft}>
           <View style={styles.billNoRow}>
             <Text
-              style={[styles.billNo, bill.isDeleted && { color: "#94A3B8" }]}
+              style={[styles.billNo, bill?.isDeleted && { color: "#94A3B8" }]}
             >
               {bill.billNumber}
             </Text>
@@ -241,9 +246,9 @@ function BillHistoryCard({ bill, shopDetails }: CardProps) {
                 onPress={async () => {
                   await handleUndo();
                 }}
-                disabled={loading}
+                disabled={undoLoading}
               >
-                {loading ? (
+                {undoLoading ? (
                   <ActivityIndicator size="small" color="#E53935" />
                 ) : (
                   <>
@@ -256,9 +261,9 @@ function BillHistoryCard({ bill, shopDetails }: CardProps) {
               <TouchableOpacity
                 style={styles.downloadBtn}
                 onPress={handleDownload}
-                disabled={loading}
+                disabled={downloadLoading}
               >
-                {loading ? (
+                {downloadLoading ? (
                   <ActivityIndicator size="small" color="#1E63D5" />
                 ) : (
                   <>
@@ -279,7 +284,7 @@ function BillHistoryCard({ bill, shopDetails }: CardProps) {
 
 export default function BillHistoryPage() {
   const [bills, setBills] = useState<BillRecord[]>([]);
-  const [shopDetails, setShopDetails] = useState<ShopInfo | null>(null);
+  const [shopDetails, setShopDetails] = useState<ShopDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);

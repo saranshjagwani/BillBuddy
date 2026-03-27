@@ -16,15 +16,10 @@ import {
 import { useAppTheme } from "../../shared/provider/AppThemeProvider";
 import { useNavigation } from "@react-navigation/native";
 import type { AddStockScreenProps } from "../types/AddStockScreenProps";
-import  useAddItem  from "../hooks/useAddItem";
-import { PRODUCT_UNITS } from "../hooks/useAddItem";
+import useAddItem from "../hooks/useAddItem";
 import useUpdateItem from "../hooks/useEditItem";
 
-
-
-
 // ─── Constants ────────────────────────────────────────────────────────────────
-
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
@@ -37,10 +32,10 @@ import useUpdateItem from "../hooks/useEditItem";
  * If the item is valid, it will be added or updated in the database.
  * If the item is invalid, it will display the errors in the form.
  * If the item is in edit mode, the screen will pre-fill the form with the existing item data.
-  **/
+ **/
 export default function AddStockScreen1({
-    onCancel,
-   item,
+  onCancel,
+  item,
 }: AddStockScreenProps) {
   const navigation = useNavigation();
   const { theme } = useAppTheme();
@@ -48,33 +43,29 @@ export default function AddStockScreen1({
 
   const isEditMode = !!item;
 
-const addHook = useAddItem();
-const editHook = item ? useUpdateItem(item, onCancel || (() => {})) : null;
+  const addHook = useAddItem();
+  const editHook = item ? useUpdateItem(item, onCancel || (() => {})) : null;
 
-// ✅ Use one source
-const {
-  itemName,
-  unit,
-  sellingPrice,
-  currentStock,
-  setItemName,
-  setUnit,
-  setSellingPrice,
-  setCurrentStock,
-  errors,
-  loading,
-  clearError,
-  handleSave,
-} = isEditMode ? editHook! : addHook;
-
-
-
+  // ✅ Use one source
+  const {
+    itemName,
+    unit,
+    sellingPrice,
+    currentStock,
+    setItemName,
+    setUnit,
+    setSellingPrice,
+    setCurrentStock,
+    errors,
+    loading,
+    clearError,
+    handleSave,
+  } = isEditMode ? editHook! : addHook;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <KeyboardAvoidingView
-        style={{ flex: 1}}
-
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         {/* Header */}
@@ -97,7 +88,7 @@ const {
             <View style={styles.sideSlot} />
           )}
           <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
-           {isEditMode ? "Edit Item" : "Add Stock"}
+            {isEditMode ? "Edit Item" : "Add Stock"}
           </Text>
           <View style={styles.sideSlot} />
         </View>
@@ -122,7 +113,7 @@ const {
                   color: colors.textPrimary,
                 },
               ]}
-              placeholder="e.g. Pepsi 200ml, Rice, Biscuits"
+              placeholder="e.g. Shampoo"
               placeholderTextColor={colors.textSecondary}
               value={itemName}
               onChangeText={(v) => {
@@ -230,25 +221,6 @@ const {
               {errors.currentStock}
             </Text>
           ) : null}
-
-          {/* Tip Banner */}
-          <View
-            style={[
-              styles.tipBanner,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-              },
-            ]}
-          >
-            <Text style={styles.tipIcon}>🎙️</Text>
-            <Text style={[styles.tipText, { color: colors.textSecondary }]}>
-              <Text style={{ fontWeight: "700", color: colors.textPrimary }}>
-                Tip:{" "}
-              </Text>
-              You can say, "Add 24 Pepsi bottles at ₹20".
-            </Text>
-          </View>
         </ScrollView>
 
         {/* Save Button */}
@@ -259,7 +231,6 @@ const {
               backgroundColor: colors.background,
               borderTopColor: colors.border,
             },
-
           ]}
         >
           <TouchableOpacity
@@ -271,7 +242,9 @@ const {
             {loading ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
-              <Text style={styles.saveBtnText}>{isEditMode ? "Update" : "Save"}</Text>
+              <Text style={styles.saveBtnText}>
+                {isEditMode ? "Update" : "Save"}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -303,6 +276,23 @@ interface UnitDropdownProps {
 }
 function UnitDropdown({ value, onSelect, colors }: UnitDropdownProps) {
   const [open, setOpen] = useState(false);
+  const [customMode, setCustomMode] = useState(false);
+  const [customInput, setCustomInput] = useState("");
+  const { units } = useAddItem();
+
+  const handleClose = () => {
+    setOpen(false);
+    setCustomMode(false);
+    setCustomInput("");
+  };
+
+  const handleCustomSubmit = () => {
+    const trimmed = customInput.trim();
+    if (trimmed) {
+      onSelect(trimmed);
+      handleClose();
+    }
+  };
 
   return (
     <>
@@ -324,12 +314,12 @@ function UnitDropdown({ value, onSelect, colors }: UnitDropdownProps) {
         visible={open}
         transparent
         animationType="fade"
-        onRequestClose={() => setOpen(false)}
+        onRequestClose={handleClose}
       >
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setOpen(false)}
+          onPress={handleClose}
         >
           <View
             style={[
@@ -337,50 +327,134 @@ function UnitDropdown({ value, onSelect, colors }: UnitDropdownProps) {
               { backgroundColor: colors.card, borderColor: colors.border },
             ]}
           >
-            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
-              Select Unit
-            </Text>
-            <FlatList
-              data={PRODUCT_UNITS}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
+            {customMode ? (
+              // ── Custom unit input view ──
+              <TouchableOpacity activeOpacity={1}>
+                {/* Prevents overlay press from closing while typing */}
                 <TouchableOpacity
-                  style={[
-                    styles.modalItem,
-                    item === value && {
-                      backgroundColor: colors.primary + "18",
-                    },
-                  ]}
-                  onPress={() => {
-                    onSelect(item);
-                    setOpen(false);
-                  }}
+                  onPress={() => setCustomMode(false)}
+                  style={styles.backButton}
                 >
                   <Text
-                    style={[
-                      styles.modalItemText,
-                      {
-                        color:
-                          item === value ? colors.primary : colors.textPrimary,
-                        fontWeight: item === value ? "600" : "400",
-                      },
-                    ]}
+                    style={[styles.backButtonText, { color: colors.primary }]}
                   >
-                    {item}
+                    ← Back
                   </Text>
-                  {item === value && (
-                    <Text style={{ color: colors.primary }}>✓</Text>
-                  )}
                 </TouchableOpacity>
-              )}
-            />
+
+                <Text
+                  style={[styles.modalTitle, { color: colors.textPrimary }]}
+                >
+                  Custom Unit
+                </Text>
+
+                <TextInput
+                  style={[
+                    styles.customInput,
+                    {
+                      borderColor: colors.border,
+                      backgroundColor: colors.background,
+                      color: colors.textPrimary,
+                    },
+                  ]}
+                  placeholder="e.g. fl oz, dozen, bunch..."
+                  placeholderTextColor={colors.textSecondary}
+                  value={customInput}
+                  onChangeText={setCustomInput}
+                  autoFocus
+                  returnKeyType="done"
+                  onSubmitEditing={handleCustomSubmit}
+                />
+
+                <TouchableOpacity
+                  style={[
+                    styles.confirmButton,
+                    {
+                      backgroundColor: customInput.trim()
+                        ? colors.primary
+                        : colors.border,
+                    },
+                  ]}
+                  onPress={handleCustomSubmit}
+                  disabled={!customInput.trim()}
+                >
+                  <Text style={[styles.confirmButtonText, { color: "#fff" }]}>
+                    Confirm
+                  </Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ) : (
+              // ── Units list view ──
+              <>
+                <Text
+                  style={[styles.modalTitle, { color: colors.textPrimary }]}
+                >
+                  Select Unit
+                </Text>
+
+                <FlatList
+                  data={units}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.modalItem,
+                        item === value && {
+                          backgroundColor: colors.primary + "18",
+                        },
+                      ]}
+                      onPress={() => {
+                        onSelect(item);
+                        handleClose();
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.modalItemText,
+                          {
+                            color:
+                              item === value
+                                ? colors.primary
+                                : colors.textPrimary,
+                            fontWeight: item === value ? "600" : "400",
+                          },
+                        ]}
+                      >
+                        {item}
+                      </Text>
+                      {item === value && (
+                        <Text style={{ color: colors.primary }}>✓</Text>
+                      )}
+                    </TouchableOpacity>
+                  )}
+                  // ── "Custom..." row at the bottom ──
+                  ListFooterComponent={
+                    <TouchableOpacity
+                      style={[
+                        styles.modalItem,
+                        { borderTopWidth: 0.5, borderTopColor: colors.border },
+                      ]}
+                      onPress={() => setCustomMode(true)}
+                    >
+                      <Text
+                        style={[
+                          styles.modalItemText,
+                          { color: colors.primary, fontWeight: "500" },
+                        ]}
+                      >
+                        + Custom unit...
+                      </Text>
+                    </TouchableOpacity>
+                  }
+                />
+              </>
+            )}
           </View>
         </TouchableOpacity>
       </Modal>
     </>
   );
 }
-
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
@@ -536,7 +610,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
-
   },
   modalSheet: {
     width: "100%",
@@ -563,5 +636,32 @@ const styles = StyleSheet.create({
   },
   modalItemText: {
     fontSize: 15,
+  },
+  // Inside your StyleSheet.create({...})
+  backButton: {
+    marginBottom: 4,
+  },
+  backButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  customInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  confirmButton: {
+    borderRadius: 8,
+    paddingVertical: 11,
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  confirmButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
   },
 });

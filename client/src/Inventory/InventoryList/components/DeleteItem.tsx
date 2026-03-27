@@ -6,6 +6,7 @@ import {
   Modal,
   StyleSheet,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { deleteItem } from "../services/itemfetch.service";
@@ -39,41 +40,45 @@ export default function DeleteItem({ itemId, shopId, itemName, onDeleted }: Dele
 
   return (
     <>
-      {/* Trigger Button */}
       <TouchableOpacity
         style={styles.deleteBtn}
         onPress={() => setModalVisible(true)}
+        activeOpacity={0.7}
       >
-        <Feather name="trash-2" size={16} color="#EF4444" />
+        <Feather name="trash-2" size={15} color="#EF4444" />
       </TouchableOpacity>
 
-      {/* Confirmation Modal */}
       <Modal
         visible={modalVisible}
         transparent
         animationType="fade"
+        statusBarTranslucent={true} // ← fixes Android offset
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.overlay}>
-          <View style={styles.modal}>
-            {/* Icon */}
+        {/* Pressable backdrop so tapping outside closes it */}
+        <Pressable
+          style={styles.overlay}
+          onPress={() => !loading && setModalVisible(false)}
+        >
+          {/* stopPropagation so tapping modal itself doesn't close */}
+          <Pressable style={styles.modal} onPress={(e) => e.stopPropagation()}>
+
             <View style={styles.iconBox}>
               <Feather name="trash-2" size={28} color="#EF4444" />
             </View>
 
-            {/* Text */}
             <Text style={styles.title}>Delete Item?</Text>
             <Text style={styles.subtitle}>
               Are you sure you want to delete{" "}
-              <Text style={styles.itemName}>{itemName}</Text> 
+              <Text style={styles.itemName}>{itemName}</Text>?
             </Text>
 
-            {/* Buttons */}
             <View style={styles.btnRow}>
               <TouchableOpacity
                 style={styles.cancelBtn}
                 onPress={() => setModalVisible(false)}
                 disabled={loading}
+                activeOpacity={0.7}
               >
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
@@ -82,6 +87,7 @@ export default function DeleteItem({ itemId, shopId, itemName, onDeleted }: Dele
                 style={styles.confirmBtn}
                 onPress={handleDelete}
                 disabled={loading}
+                activeOpacity={0.8}
               >
                 {loading ? (
                   <ActivityIndicator size="small" color="#fff" />
@@ -90,42 +96,43 @@ export default function DeleteItem({ itemId, shopId, itemName, onDeleted }: Dele
                 )}
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+
+          </Pressable>
+        </Pressable>
       </Modal>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  // The trigger button inside the list card
   deleteBtn: {
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: "#FFF1F2", // Softer red-white
-    borderWidth: 1,
-    borderColor: "#FFE4E6",
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#FFF1F2",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
-  // The Backdrop
+  // Full screen backdrop
   overlay: {
-    flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.75)", // Deep slate with high opacity for focus
+    position: "absolute", // ← absolute instead of flex
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
   },
 
-  // The Modal Container
   modal: {
     width: "100%",
     backgroundColor: "#FFFFFF",
-    borderRadius: 24, // More rounded for a modern friendly feel
-    padding: 32,
+    borderRadius: 24,
+    padding: 28,
     alignItems: "center",
-    // Premium Shadow for depth
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.15,
@@ -133,7 +140,6 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
 
-  // The Danger Icon Container
   iconBox: {
     width: 64,
     height: 64,
@@ -143,20 +149,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 20,
     borderWidth: 4,
-    borderColor: "#FFF1F2", // Double ring effect
+    borderColor: "#FFF1F2",
   },
 
   title: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#1E293B", // Dark Slate
+    color: "#1E293B",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   subtitle: {
     fontSize: 15,
-    color: "#64748B", // Muted slate
+    color: "#64748B",
     textAlign: "center",
     lineHeight: 22,
     marginBottom: 24,
@@ -164,7 +170,7 @@ const styles = StyleSheet.create({
 
   itemName: {
     fontWeight: "800",
-    color: "#0F172A", // Contrast highlight
+    color: "#0F172A",
   },
 
   btnRow: {
@@ -173,7 +179,6 @@ const styles = StyleSheet.create({
     width: "100%",
   },
 
-  // Secondary Action (Keep it subtle)
   cancelBtn: {
     flex: 1,
     paddingVertical: 14,
@@ -182,7 +187,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E2E8F0",
     alignItems: "center",
-    justifyContent: 'center',
+    justifyContent: "center",
   },
 
   cancelText: {
@@ -191,18 +196,16 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
 
-  // Primary Action (Stronger visual weight)
   confirmBtn: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: "#EF4444", // Clean Danger Red
+    backgroundColor: "#EF4444",
     alignItems: "center",
-    justifyContent: 'center',
-    // Slight shadow to make the red button "pop"
+    justifyContent: "center",
     shadowColor: "#EF4444",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
