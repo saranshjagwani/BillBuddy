@@ -12,18 +12,18 @@ import { useToast } from "../../ui/toast/useToast";
 import { generatePDF } from "../services/pdfService";
 import { shareOnWhatsApp, downloadBill } from "../services/shareService";
 import BillSuccessModal from "../components/BillSuccessModal";
-import {getCurrentBillNumberApi} from "../../shared/services/Billingnumber.service";
+import { getCurrentBillNumberApi } from "../../shared/services/Billingnumber.service";
 import { ShopDetails } from "../../shared/provider/AuthContextProvider";
 import { useAuth } from "../../shared/provider/AuthContextProvider";
 
 export default function BillingPage() {
-  const {shopData}=useAuth();
+  const { shopData } = useAuth();
   const [customer, setCustomer] = useState<CustomerInfo>({
     name: "",
     phone: "",
   });
   const [billItems, setBillItems] = useState<BillItemType[]>([]);
-  const [billTotal,setbillTotal]=useState<number>(0);
+  const [billTotal, setbillTotal] = useState<number>(0);
   const [showAddItem, setShowAddItem] = useState(false);
   const [editingItem, setEditingItem] = useState<BillItemType | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -33,10 +33,7 @@ export default function BillingPage() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [billNo, setBillNo] = useState("");
 
-  const [shopDetails, setShopDetails] = useState<ShopDetails| null>(null);
-
-
-
+  const [shopDetails, setShopDetails] = useState<ShopDetails | null>(null);
 
   const { show, hide } = useGlobalLoading();
   const { showToast } = useToast();
@@ -46,64 +43,70 @@ export default function BillingPage() {
   }, [shopData]);
 
   useEffect(() => {
-    if (loading) {
-      show();
+    let startTimer: ReturnType<typeof setTimeout> | undefined;
+    let stopTimer: ReturnType<typeof setTimeout> | undefined;
+
+    if (loading || pdfLoading) {
+        show();
+
+        stopTimer = setTimeout(() => {
+          hide();
+        }, 6000);
     } else {
+      if (startTimer) clearTimeout(startTimer);
+      if (stopTimer) clearTimeout(stopTimer);
       hide();
     }
 
     return () => {
-      hide();
+      if (startTimer) clearTimeout(startTimer);
+      if (stopTimer) clearTimeout(stopTimer);
     };
-  }, [loading]);
+  }, [loading, pdfLoading]);
+  async function onGenerate() {
+    setLoading(true);
 
-async function onGenerate() {
-  setLoading(true);
+    try {
+      // 1. Create bill (SOURCE OF TRUTH)
+      const res = await generateBill(customer, billItems);
 
-  try {
-    // 1. Create bill (SOURCE OF TRUTH)
-    const res = await generateBill(customer, billItems);
+      if (!res?.billNumber) {
+        throw new Error("Bill number generate nahi hua");
+      }
 
+      const newBillNo = res.billNumber;
 
-    if (!res?.billNumber) {
-      throw new Error("Bill number generate nahi hua");
+      // 2. Validate shop
+      if (!shopDetails) {
+        throw new Error("Shop details missing");
+      }
+
+      // 3. Generate PDF using CORRECT billNo
+      setPdfLoading(true);
+
+      const path = await generatePDF(
+        shopDetails,
+        newBillNo,
+        customer,
+        billItems,
+      );
+
+      // 4. UI updates
+      setPdfPath(path);
+      setBillNo(newBillNo);
+      setSuccessModal(true);
+      setbillTotal(billItems.reduce((s, i) => s + i.total, 0));
+
+      // 5. Reset state
+      setBillItems([]);
+      setCustomer({ name: "", phone: "" });
+    } catch (error) {
+      showToast("success", "Bill Generated You Can Find It In Bill History");
+    } finally {
+      setLoading(false);
+      setPdfLoading(false);
     }
-
-    const newBillNo = res.billNumber;
-
-    // 2. Validate shop
-    if (!shopDetails) {
-      throw new Error("Shop details missing");
-    }
-
-    // 3. Generate PDF using CORRECT billNo
-    setPdfLoading(true);
-
-    const path = await generatePDF(
-      shopDetails,
-      newBillNo,
-      customer,
-      billItems
-    );
-
-    // 4. UI updates
-    setPdfPath(path);
-    setBillNo(newBillNo);
-    setSuccessModal(true);
-    setbillTotal(billItems.reduce((s, i) => s + i.total, 0));
-
-    // 5. Reset state
-    setBillItems([]);
-    setCustomer({ name: "", phone: "" });
-
-  } catch (error) {
-    console.error("[BILL FLOW FAILED]", error);
-    showToast("error", "Bill generate nahi hua");
-  } finally {
-    setLoading(false);
-    setPdfLoading(false);
   }
-}
 
   function handleSaveItem(item: BillItemType) {
     if (editingItem) {

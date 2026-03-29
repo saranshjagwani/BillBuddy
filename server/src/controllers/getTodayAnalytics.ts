@@ -38,6 +38,7 @@ export async function getTodayAnalytics(req: express.Request, res: express.Respo
         totalBills: 0,
         totalDiscount: 0,
         totalItems: 0,
+        itemsSummary:null,
       });
     }
 

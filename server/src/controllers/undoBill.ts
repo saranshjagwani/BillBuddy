@@ -51,20 +51,22 @@ export async function undoBill(req: express.Request, res: express.Response) {
 
     // ─── Pre-fetch item refs BEFORE transaction ────────────────────────────────
     const itemRefs = billItems.map((item: any) =>
-      db.collection("item").doc(item.itemId)
+      db.collection("item").doc(item.itemId),
     );
 
     // ─── Analytics ref based on bill's original creation date ─────────────────
     const billDate = new Date(bill.createdAt._seconds * 1000)
       .toISOString()
       .split("T")[0];
-    const analyticsRef = db.collection("analytics").doc(`${shopId}_${billDate}`);
+    const analyticsRef = db
+      .collection("analytics")
+      .doc(`${shopId}_${billDate}`);
 
     // ─── Run the Firestore transaction ────────────────────────────────────────
     await db.runTransaction(async (transaction) => {
       // 1. READ all item docs
       const itemSnapshots = await Promise.all(
-        itemRefs.map((ref: any) => transaction.get(ref))
+        itemRefs.map((ref: any) => transaction.get(ref)),
       );
 
       // 2. READ analytics doc
@@ -83,7 +85,7 @@ export async function undoBill(req: express.Request, res: express.Response) {
 
         if (currentStock < 0) {
           throw new Error(
-            `Cannot undo: stock for "${snap.data()?.name}" is already below zero.`
+            `Cannot undo: stock for "${snap.data()?.name}" is already below zero.`,
           );
         }
 
@@ -109,23 +111,38 @@ export async function undoBill(req: express.Request, res: express.Response) {
       // 6. WRITE — reduce analytics
       if (analyticsSnap.exists) {
         const data = analyticsSnap.data()!;
+        const existingItems = data.itemsSummary || {};
         const totalItemsSold = billItems.reduce(
           (sum, item) => sum + Number(item.quantity),
-          0
+          0,
         );
+
+        bill.items.forEach((item) => {
+          if (!existingItems[item.itemId]) return;
+
+          existingItems[item.itemId].quantity -= item.quantity;
+          existingItems[item.itemId].revenue -= item.finalPrice;
+
+
+          if (existingItems[item.itemId].quantity <= 0) {
+            delete existingItems[item.itemId];
+          }
+        });
 
         transaction.update(analyticsRef, {
           totalSales: Math.max(0, data.totalSales - bill.totalAmount),
           totalBills: Math.max(0, data.totalBills - 1),
           totalDiscount: Math.max(0, data.totalDiscount - bill.totalDiscount),
           totalItems: Math.max(0, data.totalItems - totalItemsSold),
+          itemsSummary: existingItems, // 👈 IMPORTANT
           updatedAt: new Date(),
         });
       }
     });
 
-    return res.status(200).json({ success: true, message: "Bill undone successfully" });
-
+    return res
+      .status(200)
+      .json({ success: true, message: "Bill undone successfully" });
   } catch (error: any) {
     console.error("Error undoing bill:", error);
 

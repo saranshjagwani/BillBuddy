@@ -10,6 +10,7 @@ export default function useUpdateItem(item: Item, onSuccess: () => void) {
   const { showToast } = useToast();
   const shopId = shopData?.shopId || null;
 
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -18,6 +19,8 @@ export default function useUpdateItem(item: Item, onSuccess: () => void) {
   const [unit, setUnit] = useState(item.unit);
   const [sellingPrice, setSellingPrice] = useState(String(item.sellingPrice));
   const [currentStock, setCurrentStock] = useState(String(item.currentStock));
+
+  if(currentStock === "0") setCurrentStock("");
 
   function clearError(field: string) {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -36,28 +39,32 @@ export default function useUpdateItem(item: Item, onSuccess: () => void) {
     return Object.keys(newErrors).length === 0;
   }
 
-  async function handleSave() {
-    if (!validate() || !shopId) return;
+async function handleSave() {
+  if (!validate() || !shopId) return { success: false };
 
-    try {
-      console.log("Items Before save ", item);
-      setLoading(true);
-      await updateItem(item.itemId, {
-        itemName,
-        unit,
-        sellingPrice: Number(sellingPrice),
-        currentStock: Number(currentStock),
-        shopId,
-      });
-      showToast("success", "Item updated successfully!");
-      onSuccess();
-    } catch (err) {
-      console.error("updateItem error:", err);
-      showToast("error", "Failed to update item.");
-    } finally {
-      setLoading(false);
-    }
+  try {
+    console.log("Items Before save ", item);
+    setLoading(true);
+
+    await updateItem(item.itemId, {
+      itemName,
+      unit,
+      sellingPrice: Number(sellingPrice),
+      currentStock: Number(currentStock),
+      shopId,
+    });
+
+    showToast("success", "Item updated successfully!");
+
+    return { success: true }; // 👈 key change
+  } catch (err) {
+    console.error("updateItem error:", err);
+    showToast("error", "Failed to update item.");
+    return { success: false };
+  } finally {
+    setLoading(false);
   }
+}
 
   return {
     itemName,

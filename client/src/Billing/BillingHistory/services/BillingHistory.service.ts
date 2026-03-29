@@ -26,7 +26,7 @@ export type BillRecord = {
   customerPhone: string;
   items: {
     itemId: string;
-    name: string;
+    itemName: string;
     quantity: number;
     unit: string;
     basePrice: number;

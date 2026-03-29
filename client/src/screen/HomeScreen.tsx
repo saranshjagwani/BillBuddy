@@ -1,7 +1,7 @@
 import React from "react";
 import {
   View, Text, TouchableOpacity,
-  StyleSheet, StatusBar,
+  StyleSheet, StatusBar, ScrollView
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -15,6 +15,7 @@ export type AppStackParamList = {
   InventoryListPage: undefined;
   BillingPage: undefined;
   BillHistoryPage: undefined;
+  AnalyticsPage: undefined;
 };
 
 type Nav = StackNavigationProp<AppStackParamList, "HomeScreen">;
@@ -23,11 +24,13 @@ export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
 
   return (
+    <ScrollView>
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0A0A" />
 
+
       <View style={styles.header}>
-        <Text style={styles.greeting}>Good morning 👋</Text>
+        <Text style={styles.greeting}>Namaste 👋</Text>
         <Text style={styles.title}>BillBuddy</Text>
         <Text style={styles.subtitle}>Manage your shop inventory</Text>
       </View>
@@ -92,7 +95,6 @@ export default function HomeScreen() {
           <Text style={[styles.cardArrow, styles.cardArrowDark]}>→</Text>
         </TouchableOpacity>
 
-        {/* Bill History ← NEW */}
         <TouchableOpacity
           style={[styles.card, styles.cardHistory]}
           onPress={() => navigation.navigate("BillHistoryPage")}
@@ -111,11 +113,34 @@ export default function HomeScreen() {
           </View>
           <Text style={[styles.cardArrow, styles.cardArrowDark]}>→</Text>
         </TouchableOpacity>
+                {/* Analytics ← NEW */}
+        <TouchableOpacity
+          style={[styles.card, styles.cardAnalytics]}
+          onPress={() => navigation.navigate("AnalyticsPage")}
+          activeOpacity={0.85}
+        >
+          <View style={[styles.cardIcon, styles.cardIconAnalytics]}>
+            <Text style={[styles.cardIconText, { color: "#34D399" }]}>📊</Text>
+          </View>
+          <View style={styles.cardContent}>
+            <Text style={[styles.cardTitle, styles.cardTitleDark]}>
+              Analytics
+            </Text>
+            <Text style={[styles.cardDescription, styles.cardDescriptionDark]}>
+              Today's sales, stock alerts and insights
+            </Text>
+          </View>
+          <Text style={[styles.cardArrow, styles.cardArrowDark]}>→</Text>
+        </TouchableOpacity>
+
 
       </View>
 
+
+
       <Text style={styles.footer}>Tap a card to get started</Text>
     </View>
+    </ScrollView>
   );
 }
 
@@ -153,6 +178,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#13092A",
     borderWidth: 1, borderColor: "#6D28D9",
   },
+
+  cardAnalytics: {
+    backgroundColor: "#061A12",
+    borderWidth: 1,
+    borderColor: "#065F46",
+  },
+  cardIconAnalytics: { backgroundColor: "#064E3B" },
 
   cardIcon: {
     width: 52, height: 52, borderRadius: 14,

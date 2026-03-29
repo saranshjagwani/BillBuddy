@@ -34,10 +34,10 @@ export default function AddEditItem({
   visible,
   onClose,
   onSave,
-  editItem
+  editItem,
 }: Props) {
   const { items } = useItems();
-  const {showToast}=useToast();
+  const { showToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<BillItem | null>(null);
@@ -69,54 +69,51 @@ export default function AddEditItem({
 
     const numericValue = parseInt(value, 10);
 
-
-    if (isNaN(numericValue) || numericValue < 1) {
+    if (isNaN(numericValue)) {
       setQuantity("1");
       return;
     }
 
-
-
     const maxStock = selectedItem?.currentStock ?? 0;
 
-     if(numericValue>maxStock){
+    if (numericValue > maxStock) {
       showToast("warning", `Only ${maxStock} is available`);
     }
 
     setQuantity(String(Math.min(numericValue, maxStock)));
-
   }
 
+  
   function handleDiscountChange(value: string) {
-  // 1. Allow empty while typing
-  if (value === "") {
-    setDiscount("");
-    return;
+    // 1. Allow empty while typing
+    if (value === "") {
+      setDiscount("");
+      return;
+    }
+
+    const numericValue = parseFloat(value);
+
+    // 2. Invalid or negative → reset
+    if (isNaN(numericValue) || numericValue < 0) {
+      setDiscount("0");
+      return;
+    }
+
+    // 3. Max discount = item total OR price * quantity
+    const maxDiscount = selectedItem
+      ? selectedItem.price * Number(quantity || 1)
+      : 0;
+
+    // 4. Warn if exceeding
+    if (numericValue > maxDiscount) {
+      showToast("warning", `Max discount ₹${maxDiscount} hi de sakte ho`);
+    }
+
+    // 5. Clamp value
+    const finalValue = Math.min(numericValue, maxDiscount);
+
+    setDiscount(String(finalValue));
   }
-
-  const numericValue = parseFloat(value);
-
-  // 2. Invalid or negative → reset
-  if (isNaN(numericValue) || numericValue < 0) {
-    setDiscount("0");
-    return;
-  }
-
-  // 3. Max discount = item total OR price * quantity
-  const maxDiscount = selectedItem
-    ? selectedItem.price * Number(quantity || 1)
-    : 0;
-
-  // 4. Warn if exceeding
-  if (numericValue > maxDiscount) {
-    showToast("warning", `Max discount ₹${maxDiscount} hi de sakte ho`);
-  }
-
-  // 5. Clamp value
-  const finalValue = Math.min(numericValue, maxDiscount);
-
-  setDiscount(String(finalValue));
-}
 
   // ── Suggestions ────────────────────────────────────────────────────────────
   const suggestions = useMemo(() => {
@@ -126,7 +123,7 @@ export default function AddEditItem({
     return items
       .filter(
         (item) =>
-          item.itemName.toLowerCase().includes(q) && item.currentStock > 0
+          item.itemName.toLowerCase().includes(q) && item.currentStock > 0,
       )
       .slice(0, 3);
   }, [searchQuery, items, selectedItem]);
@@ -197,7 +194,7 @@ export default function AddEditItem({
 
         <View style={styles.sheet}>
           {/* Handle */}
-          <View  />
+          <View />
 
           {/* Header */}
           <View style={styles.header}>
@@ -232,11 +229,11 @@ export default function AddEditItem({
                     setSearchQuery("");
                     setSelectedItem(null);
                   }}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Feather name="x" size={16} color="#94A3B8" />
+                  <Feather name="x" size={20} color="#94A3B8" />
                 </TouchableOpacity>
               )}
-
             </View>
 
             {/* Suggestions Dropdown */}
@@ -249,9 +246,7 @@ export default function AddEditItem({
                     onPress={() => handleSelect(item)}
                   >
                     <View style={styles.suggestionLeft}>
-                      <Text style={styles.suggestionName}>
-                        {item.itemName}
-                      </Text>
+                      <Text style={styles.suggestionName}>{item.itemName}</Text>
                       {item.unit ? (
                         <Text style={styles.suggestionUnit}>{item.unit}</Text>
                       ) : null}
@@ -323,24 +318,23 @@ export default function AddEditItem({
 
 const styles = StyleSheet.create({
   overlay: {
-  flex: 1,
-  justifyContent: "center",   // was "flex-end"
-  alignItems: "center",        // add this
-  paddingHorizontal: 20,       // add this for side margins
-},
+    flex: 1,
+    justifyContent: "center", // was "flex-end"
+    alignItems: "center", // add this
+    paddingHorizontal: 20, // add this for side margins
+  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.4)",
   },
-sheet: {
-  backgroundColor: "#fff",
-  borderRadius: 20,            // was borderTopLeftRadius/borderTopRightRadius: 24
-  padding: 20,
-  paddingBottom: 20,           // was 36 (no extra bottom padding needed)
-  maxHeight: "75%",
-  width: "100%",               // add this so it fills the horizontal space
-},
-
+  sheet: {
+    backgroundColor: "#fff",
+    borderRadius: 20, // was borderTopLeftRadius/borderTopRightRadius: 24
+    padding: 20,
+    paddingBottom: 20, // was 36 (no extra bottom padding needed)
+    maxHeight: "75%",
+    width: "100%", // add this so it fills the horizontal space
+  },
 
   // Header
   header: {

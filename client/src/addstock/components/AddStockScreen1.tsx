@@ -18,6 +18,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { AddStockScreenProps } from "../types/AddStockScreenProps";
 import useAddItem from "../hooks/useAddItem";
 import useUpdateItem from "../hooks/useEditItem";
+import { useKeyboard } from "@react-native-community/hooks";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -39,6 +40,7 @@ export default function AddStockScreen1({
 }: AddStockScreenProps) {
   const navigation = useNavigation();
   const { theme } = useAppTheme();
+  const keyboard = useKeyboard();
   const colors = theme.colors;
 
   const isEditMode = !!item;
@@ -62,11 +64,20 @@ export default function AddStockScreen1({
     handleSave,
   } = isEditMode ? editHook! : addHook;
 
+  const onSavePress = async () => {
+    const result = await handleSave();
+
+    if (result?.success) {
+      navigation.goBack(); // 👈 clean control here
+    }
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={20}
       >
         {/* Header */}
         <View
@@ -113,7 +124,7 @@ export default function AddStockScreen1({
                   color: colors.textPrimary,
                 },
               ]}
-              placeholder="e.g. Shampoo"
+              placeholder="Enter item name (e.g. Shampoo)"
               placeholderTextColor={colors.textSecondary}
               value={itemName}
               onChangeText={(v) => {
@@ -230,12 +241,13 @@ export default function AddStockScreen1({
             {
               backgroundColor: colors.background,
               borderTopColor: colors.border,
+              marginBottom: keyboard.keyboardShown ? 10 : 0,
             },
           ]}
         >
           <TouchableOpacity
             style={[styles.saveBtn, { opacity: loading ? 0.85 : 1 }]}
-            onPress={handleSave}
+            onPress={onSavePress}
             disabled={loading}
             activeOpacity={0.88}
           >
@@ -618,7 +630,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     maxHeight: 380,
   },
-
   modalTitle: {
     fontSize: 16,
     fontWeight: "600",
@@ -637,7 +648,6 @@ const styles = StyleSheet.create({
   modalItemText: {
     fontSize: 15,
   },
-  // Inside your StyleSheet.create({...})
   backButton: {
     marginBottom: 4,
   },

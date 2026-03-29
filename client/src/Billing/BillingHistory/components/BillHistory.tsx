@@ -13,14 +13,13 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { fetchBills, BillRecord } from "../services/BillingHistory.service";
 import { fetchShop } from "../../../shop-setup/services/shop.services";
-import { generatePDF} from "../../services/pdfService";
+import { generatePDF } from "../../services/pdfService";
 import { shareOnWhatsApp } from "../../services/shareService";
 import { undoBillApi } from "../services/BillingHistory.service";
 import { useToast } from "../../../ui/toast/useToast";
 import { useAuth } from "../../../shared/provider/AuthContextProvider";
 import { getTodayAnalyticsApi } from "../services/BillingHistory.service";
 import { ShopDetails } from "../../../shared/provider/AuthContextProvider";
-
 
 // ─── BillHistoryCard ──────────────────────────────────────────────────────────
 
@@ -30,11 +29,11 @@ type CardProps = {
 
 function BillHistoryCard({ bill }: CardProps) {
   const [expanded, setExpanded] = useState(false);
-  const [undoLoading,setUndoLoading]=useState(false);
-  const [downloadLoading,setDownloadLoading]=useState(false);
+  const [undoLoading, setUndoLoading] = useState(false);
+  const [downloadLoading, setDownloadLoading] = useState(false);
   const [animation] = useState(new Animated.Value(0));
   const { showToast } = useToast();
-  const {shopData}=useAuth();
+  const { shopData } = useAuth();
 
   const date = new Date(bill.createdAt).toLocaleDateString("en-IN", {
     day: "2-digit",
@@ -94,8 +93,8 @@ function BillHistoryCard({ bill }: CardProps) {
 
       // 📄 Generate PDF
       const path = await generatePDF(
-        shopData
-        ,bill.billNumber,
+        shopData,
+        bill.billNumber,
         {
           name: bill.customerName ?? "Customer",
           phone: bill.customerPhone ?? "",
@@ -139,16 +138,6 @@ function BillHistoryCard({ bill }: CardProps) {
             >
               {bill.billNumber}
             </Text>
-            <View
-              style={[
-                styles.paymentBadge,
-                { backgroundColor: paymentColor.bg },
-              ]}
-            >
-              <Text style={[styles.paymentText, { color: paymentColor.text }]}>
-                {bill.paymentMode?.toUpperCase()}
-              </Text>
-            </View>
           </View>
 
           <Text style={styles.customerName}>
@@ -198,7 +187,7 @@ function BillHistoryCard({ bill }: CardProps) {
               ]}
             >
               <Text style={[styles.colVal, { flex: 2 }]} numberOfLines={1}>
-                {item.name}
+                {item.itemName}
               </Text>
               <Text style={styles.colVal}>
                 {item.quantity}
@@ -249,10 +238,10 @@ function BillHistoryCard({ bill }: CardProps) {
                 disabled={undoLoading}
               >
                 {undoLoading ? (
-                  <ActivityIndicator size="small" color="#E53935" />
+                  <ActivityIndicator size="small" color="#FF7A00" />
                 ) : (
                   <>
-                    <Feather name="rotate-ccw" size={15} color="#E53935" />
+                    <Feather name="rotate-ccw" size={15} color="#FF7A00" />
                     <Text style={styles.undoText}>Undo Bill</Text>
                   </>
                 )}
@@ -630,7 +619,7 @@ const styles = StyleSheet.create({
   undoneText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#94A3B8",
+    color: "rgb(148, 163, 184)",
   },
   downloadBtn: {
     flex: 1,
@@ -656,12 +645,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 10, // 👈 matched to downloadBtn's 10
     borderWidth: 1.5, // 👈 matched to downloadBtn's 1.5
-    borderColor: "#E53935",
+    borderColor: "#FF7A00",
     backgroundColor: "#FFF5F5",
   },
 
   undoText: {
-    color: "#E53935",
+    color: "#FF7A00",
     fontSize: 14, // 👈 matched to downloadText's 14
     fontWeight: "700", // 👈 matched to downloadText's 700
   },

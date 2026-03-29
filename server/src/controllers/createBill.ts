@@ -41,7 +41,7 @@ export async function createBill(req: express.Request, res: express.Response) {
 
     // ─── Pre-fetch all item refs BEFORE the transaction ───────────────────────
     const itemRefs = items.map((item: any) =>
-      db.collection("item").doc(item.itemId)
+      db.collection("item").doc(item.itemId),
     );
 
     const billId = uuidv4();
@@ -51,7 +51,7 @@ export async function createBill(req: express.Request, res: express.Response) {
     const billData = await db.runTransaction(async (transaction) => {
       // 1. READ all item documents
       const itemSnapshots = await Promise.all(
-        itemRefs.map((ref: any) => transaction.get(ref))
+        itemRefs.map((ref: any) => transaction.get(ref)),
       );
 
       // 2. READ counter
@@ -77,7 +77,7 @@ export async function createBill(req: express.Request, res: express.Response) {
         if (currentStock < requestedQty) {
           throw new Error(
             `Insufficient stock for "${snap.data()?.name}". ` +
-            `Available: ${currentStock}, Requested: ${requestedQty}`
+              `Available: ${currentStock}, Requested: ${requestedQty}`,
           );
         }
       }
@@ -92,7 +92,7 @@ export async function createBill(req: express.Request, res: express.Response) {
         const discount = Number(item.discount || 0);
 
         const itemSubtotal = basePrice * quantity;
-        const itemDiscount = discount>itemSubtotal ? itemSubtotal: discount ;
+        const itemDiscount = discount > itemSubtotal ? itemSubtotal : discount;
 
         const finalPrice = Math.max(0, basePrice * quantity - discount);
 
@@ -101,7 +101,7 @@ export async function createBill(req: express.Request, res: express.Response) {
 
         return {
           itemId: item.itemId,
-          name: item.itemName,
+          itemName: item.itemName,
           quantity,
           unit: item.unit || "bottle",
           basePrice,
@@ -111,10 +111,15 @@ export async function createBill(req: express.Request, res: express.Response) {
       });
 
       const totalAmount = subtotal - totalDiscount;
-      const totalItemsSold = processedItems.reduce((sum, item) => sum + item.quantity, 0);
+      const totalItemsSold = processedItems.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      );
 
       // 6. GENERATE bill number from counter
-      const currentCount = counterSnap.exists ? counterSnap.data()!.billCount : 0;
+      const currentCount = counterSnap.exists
+        ? counterSnap.data()!.billCount
+        : 0;
       const nextCount = currentCount + 1;
       const billNumber = `BB-${String(nextCount).padStart(4, "0")}`;
 
@@ -158,14 +163,40 @@ export async function createBill(req: express.Request, res: express.Response) {
       // 10. WRITE analytics
       if (analyticsSnap.exists) {
         const data = analyticsSnap.data()!;
+        const existingItems = data.itemsSummary || {};
+
+        processedItems.forEach((item) => {
+          if (!existingItems[item.itemId]) {
+            existingItems[item.itemId] = {
+              itemName: item.itemName ,
+              quantity: 0,
+              revenue: 0,
+            };
+          }
+
+          existingItems[item.itemId].quantity += item.quantity;
+          existingItems[item.itemId].revenue += item.finalPrice;
+        });
+
         transaction.update(analyticsRef, {
           totalSales: data.totalSales + totalAmount,
           totalBills: data.totalBills + 1,
           totalDiscount: data.totalDiscount + totalDiscount,
           totalItems: data.totalItems + totalItemsSold,
+          itemsSummary: existingItems,
           updatedAt: new Date(),
         });
       } else {
+        const itemsSummary: Record<string, any> = {};
+
+        processedItems.forEach((item) => {
+          itemsSummary[item.itemId] = {
+            itemName: item.itemName || "unknown Item",
+            quantity: item.quantity,
+            revenue: item.finalPrice,
+          };
+        });
+
         transaction.set(analyticsRef, {
           shopId,
           date: today,
@@ -173,6 +204,7 @@ export async function createBill(req: express.Request, res: express.Response) {
           totalBills: 1,
           totalDiscount,
           totalItems: totalItemsSold,
+          itemsSummary, // 👈 VERY IMPORTANT
           createdAt: new Date(),
           updatedAt: new Date(),
         });
@@ -181,9 +213,8 @@ export async function createBill(req: express.Request, res: express.Response) {
       return billNumber;
     });
 
-    console.log("Backend se aaya bill no",billData);
+    console.log("Backend se aaya bill no", billData);
     return res.status(201).json({ success: true, billNumber: billData });
-
   } catch (error: any) {
     console.error("Error creating bill:", error);
 
