@@ -1,6 +1,6 @@
 import auth from "@react-native-firebase/auth";
 
-const API_URL = "http://192.168.29.151:3000";
+const API_URL = "https://billbuddy-backend-bmsn.onrender.com";
 
 export async function createItem(data: any) {
   console.log("API call to create item with data:", data);

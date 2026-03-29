@@ -1,10 +1,8 @@
 import auth from "@react-native-firebase/auth";
 
-
-const API_URL = "http://192.168.29.151:3000";
+const API_URL = "https://billbuddy-backend-bmsn.onrender.com";
 
 export async function getCurrentBillNumberApi(): Promise<string> {
-
   const user = auth().currentUser;
 
   if (!user) {
@@ -16,7 +14,7 @@ export async function getCurrentBillNumberApi(): Promise<string> {
   const response = await fetch(`${API_URL}/bills/current-num`, {
     method: "GET",
     headers: {
-      "Authorization": `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
   });
@@ -30,7 +28,8 @@ export async function getCurrentBillNumberApi(): Promise<string> {
     throw new Error("Server error: unexpected response format");
   }
 
-  if (!response.ok) throw new Error(data.error || "Failed to fetch bill number");
+  if (!response.ok)
+    throw new Error(data.error || "Failed to fetch bill number");
 
   return data.billNumber; // "BB-0001"
 }

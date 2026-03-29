@@ -1,6 +1,6 @@
 import auth from "@react-native-firebase/auth";
 
-const API_URL = "http://192.168.29.151:3000";
+const API_URL = "https://billbuddy-backend-bmsn.onrender.com";
 
 /**
  * Get Firebase ID token safely
@@ -19,7 +19,11 @@ async function getAuthToken(): Promise<string> {
 /**
  * Create shop
  */
-export async function createShop(shopName: string , category: string, hasStaff: boolean) {
+export async function createShop(
+  shopName: string,
+  category: string,
+  hasStaff: boolean,
+) {
   const token = await getAuthToken();
 
   const res = await fetch(`${API_URL}/create-shop`, {
@@ -28,7 +32,7 @@ export async function createShop(shopName: string , category: string, hasStaff: 
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ shopName , category, hasStaff }),
+    body: JSON.stringify({ shopName, category, hasStaff }),
   });
 
   const data = await res.json();

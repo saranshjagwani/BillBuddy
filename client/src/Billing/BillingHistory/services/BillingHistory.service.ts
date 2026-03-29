@@ -1,9 +1,7 @@
 // Add this to your existing billService.ts
 import auth from "@react-native-firebase/auth";
 
-const API_URL = "http://192.168.29.151:3000";
-
-
+const API_URL = "https://billbuddy-backend-bmsn.onrender.com";
 
 /**
  * Get Firebase ID token safely
@@ -60,13 +58,14 @@ export async function fetchBills(lastCreatedAt?: string): Promise<{
   return response.json();
 }
 
-export async function undoBillApi(billId: string): Promise<{ success: boolean; message: string }> {
-
+export async function undoBillApi(
+  billId: string,
+): Promise<{ success: boolean; message: string }> {
   const token = await getAuthToken();
   const response = await fetch(`${API_URL}/bills/${billId}/undo`, {
     method: "PATCH",
     headers: {
-      "Authorization": `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
   });
@@ -94,7 +93,7 @@ export async function getTodayAnalyticsApi(): Promise<any> {
   const response = await fetch(`${API_URL}/analytics/today`, {
     method: "GET",
     headers: {
-      "Authorization": `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
   });

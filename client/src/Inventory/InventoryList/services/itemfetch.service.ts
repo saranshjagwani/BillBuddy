@@ -1,9 +1,6 @@
 import auth from "@react-native-firebase/auth";
 
-
-const API_URL = "http://192.168.29.151:3000";
-
-
+const API_URL = "https://billbuddy-backend-bmsn.onrender.com";
 
 /**
  * Get Firebase ID token safely
@@ -18,8 +15,6 @@ async function getAuthToken(): Promise<string> {
   const token = await user.getIdToken();
   return token;
 }
-
-
 
 export async function fetchShop() {
   const token = await getAuthToken();
