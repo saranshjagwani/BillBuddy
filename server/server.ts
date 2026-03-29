@@ -46,4 +46,8 @@ process.on("unhandledRejection", (reason) => {
   console.error("🔥 UNHANDLED REJECTION:", reason);
 });
 
+app.get("/", (req, res) => {
+  res.send("BillBuddy backend is live 🚀");
+});
+
 });
