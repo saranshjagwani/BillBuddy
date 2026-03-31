@@ -3,7 +3,7 @@ import express from "express";
 
 export async function getItems(req: express.Request, res: express.Response) {
   try {
-    console.log("get item called");
+    // console.log("get item called");
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -35,14 +35,14 @@ export async function getItems(req: express.Request, res: express.Response) {
     const shopData = shopDoc.data();
     const shopId = shopData.shopId;
 
-    console.log("shop id bhai ", shopId);
+    // console.log("shop id bhai ", shopId);
 
     if (!shopId) {
       return res.status(400).json({
         error: "Shop ID missing in shop document",
       });
     }
-    console.log("ShopId is ", shopId);
+    // console.log("ShopId is ", shopId);
 
     // Fetch items for this shop
     const snapshot = await db
@@ -55,7 +55,7 @@ export async function getItems(req: express.Request, res: express.Response) {
       ...doc.data(),
     }));
 
-    console.log("items are ", items);
+    // console.log("items are ", items);
 
     return res.status(200).json({
       success: true,
@@ -63,7 +63,7 @@ export async function getItems(req: express.Request, res: express.Response) {
       items,
     });
   } catch (error) {
-    console.error("Error fetching items:", error);
+    // console.error("Error fetching items:", error);
     return res.status(500).json({ error: "Failed to fetch items" });
   }
 }

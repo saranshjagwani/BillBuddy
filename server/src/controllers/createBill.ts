@@ -168,7 +168,7 @@ export async function createBill(req: express.Request, res: express.Response) {
         processedItems.forEach((item) => {
           if (!existingItems[item.itemId]) {
             existingItems[item.itemId] = {
-              itemName: item.itemName ,
+              itemName: item.itemName,
               quantity: 0,
               revenue: 0,
             };
@@ -213,10 +213,10 @@ export async function createBill(req: express.Request, res: express.Response) {
       return billNumber;
     });
 
-    console.log("Backend se aaya bill no", billData);
+    // console.log("Backend se aaya bill no", billData);
     return res.status(201).json({ success: true, billNumber: billData });
   } catch (error: any) {
-    console.error("Error creating bill:", error);
+    // console.error("Error creating bill:", error);
 
     if (
       error.message?.startsWith("Insufficient stock") ||

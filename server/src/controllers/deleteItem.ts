@@ -36,9 +36,8 @@ export async function deleteItem(req: Express.Request, res: Express.Response) {
       success: true,
       message: "Item deleted successfully (soft delete)",
     });
-
   } catch (err) {
-    console.error("Error deleting item:", err);
+    // console.error("Error deleting item:", err);
     res.status(500).send("Server error");
   }
 }

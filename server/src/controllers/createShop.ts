@@ -30,15 +30,14 @@ export async function createShop(req: express.Request, res: express.Response) {
       category,
       hasStaff,
       ownerUid: uid,
-      phoneNumber, 
+      phoneNumber,
       createdAt: new Date(),
       isSetupComplete: true,
     });
 
     res.json({ success: true });
-
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).send("Server error");
   }
 }

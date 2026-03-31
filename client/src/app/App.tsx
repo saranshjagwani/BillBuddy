@@ -23,10 +23,10 @@ import { ItemsProvider } from "../shared/provider/ItemsContext";
  */
 export default function App() {
   // 1. HOOKS: Detect the device's system color scheme (light, dark, or null)
-  const colorScheme = useColorScheme();
+  const colorScheme = "light";
 
   // 2. CONSTANTS: Logic for theme selection
-  const isDarkMode = colorScheme === "dark";
+  const isDarkMode = false;
   const statusBarStyle = isDarkMode ? "light" : "dark";
 
   return (
@@ -37,7 +37,6 @@ export default function App() {
 
       <AppThemeProvider>
         <AuthProvider>
-        <ToastProvider>
           <ItemsProvider>
         <NavigationContainer>
           {/* STATUS BAR:
@@ -49,11 +48,12 @@ export default function App() {
             The gateway to all screens (Home, Profile, etc.).
         */}
           <GlobalLoadingProvider>
+            <ToastProvider>
             <RootNavigator />
+            </ToastProvider>
           </GlobalLoadingProvider>
         </NavigationContainer>
         </ItemsProvider>
-        </ToastProvider>
         </AuthProvider>
       </AppThemeProvider>
     </>

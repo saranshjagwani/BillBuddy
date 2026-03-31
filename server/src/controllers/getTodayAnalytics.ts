@@ -1,7 +1,10 @@
 import { db, auth } from "../../firebaseAdmin.ts";
 import express from "express";
 
-export async function getTodayAnalytics(req: express.Request, res: express.Response) {
+export async function getTodayAnalytics(
+  req: express.Request,
+  res: express.Response,
+) {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -38,14 +41,13 @@ export async function getTodayAnalytics(req: express.Request, res: express.Respo
         totalBills: 0,
         totalDiscount: 0,
         totalItems: 0,
-        itemsSummary:null,
+        itemsSummary: null,
       });
     }
 
     return res.status(200).json(analyticsSnap.data());
-
   } catch (error: any) {
-    console.error("Error fetching analytics:", error);
+    // console.error("Error fetching analytics:", error);
     return res.status(500).json({ error: "Failed to fetch analytics" });
   }
 }

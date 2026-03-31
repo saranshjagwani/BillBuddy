@@ -63,7 +63,7 @@ function BillHistoryCard({ bill }: CardProps) {
       await undoBillApi(bill?.billId);
       showToast("success", "Undo Done");
     } catch (error: any) {
-      console.error("Undo error:", error);
+      // console.error("Undo error:", error);
       showToast("error", "Cannot Undo");
     } finally {
       setUndoLoading(false);
@@ -72,7 +72,7 @@ function BillHistoryCard({ bill }: CardProps) {
 
   const handleDownload = async () => {
     if (downloadLoading) return;
-    console.log("Download is Started");
+    // console.log("Download is Started");
 
     setDownloadLoading(true);
 
@@ -89,7 +89,7 @@ function BillHistoryCard({ bill }: CardProps) {
         currentStock: 0, // not needed for PDF
       }));
 
-      console.log("Bill Items are", billItems);
+      // console.log("Bill Items are", billItems);
 
       // 📄 Generate PDF
       const path = await generatePDF(
@@ -109,7 +109,7 @@ function BillHistoryCard({ bill }: CardProps) {
       // ⬇️ Download immediately using fresh value (no async state issue)
       await shareOnWhatsApp(path, bill.billNumber);
     } catch (error: any) {
-      console.error("Download error:", error);
+      // console.error("Download error:", error);
     } finally {
       setDownloadLoading(false);
     }
@@ -291,7 +291,7 @@ export default function BillHistoryPage() {
       const data = await getTodayAnalyticsApi();
       setAnalytics(data);
     } catch (error: any) {
-      console.error("Analytics error:", error);
+      // console.error("Analytics error:", error);
     }
   };
 
@@ -332,7 +332,7 @@ export default function BillHistoryPage() {
       setBills((prev) => [...prev, ...moreBills]); // append
       setHasMore(more);
     } catch (e) {
-      console.error("Load more error:", e);
+      // console.error("Load more error:", e);
     } finally {
       setLoadingMore(false);
     }

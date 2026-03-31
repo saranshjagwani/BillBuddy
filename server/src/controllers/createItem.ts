@@ -2,10 +2,10 @@ import { db, auth } from "../../firebaseAdmin.ts";
 import { v4 as uuidv4 } from "uuid";
 import Express from "express";
 
-export async function createItem(req:Express.Request, res:Express.Response) {
+export async function createItem(req: Express.Request, res: Express.Response) {
   try {
     const token = req.headers.authorization?.split("Bearer ")[1];
-    console.log("Received create item request with token:", token);
+    // console.log("Received create item request with token:", token);
 
     if (!token) {
       res.status(401).send("Unauthorized");
@@ -30,15 +30,14 @@ export async function createItem(req:Express.Request, res:Express.Response) {
       expiryDate,
       lowStockAlert,
       notes,
-      lastUpdatedVia
+      lastUpdatedVia,
     } = req.body;
 
-
     // Validate required fields
-    if ( !shopId || !itemName || !sellingPrice || !unit) {
-      console.warn("Validation failed: Missing required fields", { name, sellingPrice, unit });
+    if (!shopId || !itemName || !sellingPrice || !unit) {
+      // console.warn("Validation failed: Missing required fields", { name, sellingPrice, unit });
       res.status(400).json({
-        error: "Missing required fields"
+        error: "Missing required fields",
       });
       return;
     }
@@ -48,11 +47,11 @@ export async function createItem(req:Express.Request, res:Express.Response) {
     const itemData = {
       itemId,
       shopId,
-      itemName : itemName.trim() || "Unnamed Item",
+      itemName: itemName.trim() || "Unnamed Item",
       category: category || null,
       type: type || "product",
       sellingPrice: sellingPrice || 0,
-      unit : unit || "pcs",
+      unit: unit || "pcs",
       currentStock: currentStock ?? 0,
       isActive: isActive ?? true,
       barcodeID: barcodeID || null,
@@ -68,19 +67,17 @@ export async function createItem(req:Express.Request, res:Express.Response) {
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: uid,
-      lastUpdatedVia: lastUpdatedVia || "owner"
+      lastUpdatedVia: lastUpdatedVia || "owner",
     };
 
     await db.collection("item").doc(itemId).set(itemData);
 
     res.status(201).json({
       success: true,
-      item: itemData
+      item: itemData,
     });
-    
-
   } catch (err) {
-    console.error("Error creating item:", err);
+    // console.error("Error creating item:", err);
     res.status(500).send("Server error");
   }
 }

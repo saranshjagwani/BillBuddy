@@ -57,10 +57,29 @@ export async function fetchShop() {
   });
 
   const data = await res.json();
-  console.log("Response from fetchShop", data);
+  // console.log("Response from fetchShop", data);
 
   if (!res.ok) {
     throw new Error(data?.message || "Failed to fetch shop");
+  }
+
+  return data;
+}
+
+export async function deleteShop() {
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_URL}/delete-shop`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.message || "Failed to delete shop");
   }
 
   return data;

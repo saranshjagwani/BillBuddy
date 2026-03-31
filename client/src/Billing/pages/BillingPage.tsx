@@ -47,11 +47,11 @@ export default function BillingPage() {
     let stopTimer: ReturnType<typeof setTimeout> | undefined;
 
     if (loading || pdfLoading) {
-        show();
+      show();
 
-        stopTimer = setTimeout(() => {
-          hide();
-        }, 6000);
+      stopTimer = setTimeout(() => {
+        hide();
+      }, 6000);
     } else {
       if (startTimer) clearTimeout(startTimer);
       if (stopTimer) clearTimeout(stopTimer);
@@ -126,7 +126,7 @@ export default function BillingPage() {
 
   function handleEdit(item: BillItemType) {
     setEditingItem(item);
-    console.log(item);
+    // console.log(item);
     setShowAddItem(true);
   }
 

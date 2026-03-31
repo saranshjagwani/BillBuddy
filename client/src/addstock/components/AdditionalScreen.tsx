@@ -15,7 +15,6 @@
 // } from "react-native";
 // import { useAppTheme } from "../../shared/provider/AppThemeProvider";
 
-
 // // ─── Types ────────────────────────────────────────────────────────────────────
 
 // export interface AdditionalDetailsPayload {
@@ -32,8 +31,6 @@
 //   onSkip?: () => void;
 //   onBack?: () => void;
 // }
-
-
 
 // // ─── Main Screen ──────────────────────────────────────────────────────────────
 
@@ -96,7 +93,7 @@
 //     try {
 //       await onSave?.(buildPayload());
 //     } catch (err) {
-//       console.log("AdditionalDetails error:", err);
+//       // console.log("AdditionalDetails error:", err);
 //     } finally {
 //       setLoading(false);
 //     }

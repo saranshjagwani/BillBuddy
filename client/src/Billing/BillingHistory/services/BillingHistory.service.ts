@@ -77,7 +77,7 @@ export async function undoBillApi(
   try {
     data = JSON.parse(raw);
   } catch {
-    console.error("Server returned non-JSON response:", raw); // 👈 this will show the actual HTML/error
+    // console.error("Server returned non-JSON response:", raw); // 👈 this will show the actual HTML/error
     throw new Error("Server error: unexpected response format");
   }
 
@@ -104,7 +104,7 @@ export async function getTodayAnalyticsApi(): Promise<any> {
   try {
     data = JSON.parse(raw);
   } catch {
-    console.error("Server returned non-JSON response:", raw);
+    // console.error("Server returned non-JSON response:", raw);
     throw new Error("Server error: unexpected response format");
   }
 

@@ -43,9 +43,8 @@ export async function updateItem(req: Express.Request, res: Express.Response) {
       success: true,
       message: "Item updated successfully",
     });
-
   } catch (err) {
-    console.error("Error updating item:", err);
+    // console.error("Error updating item:", err);
     res.status(500).send("Server error");
   }
 }

@@ -66,7 +66,7 @@ export const ItemsProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
       },
       (err) => {
-        console.error("Items snapshot error:", err);
+        // console.error("Items snapshot error:", err);
 
         // WHY: Never fail silently (constitution rule)
         setError("Failed to sync items");

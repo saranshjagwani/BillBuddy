@@ -86,7 +86,7 @@ export default function useOtp(
         }
       } catch (error) {
         // ✅ only real errors reach here now
-        console.error("OTP Error:", error); // ← add this first to see real error
+        // console.error("OTP Error:", error); // ← add this first to see real error
         setError("Invalid OTP. Please try again.");
         setOtp(Array(OTP_LENGTH).fill(""));
         setTimeout(() => inputRefs.current[0]?.focus(), 100);

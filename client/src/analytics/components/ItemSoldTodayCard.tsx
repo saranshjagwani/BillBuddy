@@ -151,8 +151,8 @@ const ItemsSoldTodayCard: React.FC = () => {
       })
     : null;
 
-  console.log("Raw updatedAt from backend:", data?.updatedAt);
-  console.log("Updated time for analytics:", updatedTime);
+  // console.log("Raw updatedAt from backend:", data?.updatedAt);
+  // console.log("Updated time for analytics:", updatedTime);
 
   return (
     <View style={styles.card}>

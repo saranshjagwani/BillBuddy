@@ -24,7 +24,7 @@ export async function getCurrentBillNumberApi(): Promise<string> {
   try {
     data = JSON.parse(raw);
   } catch {
-    console.error("Server returned non-JSON response:", raw);
+    // console.error("Server returned non-JSON response:", raw);
     throw new Error("Server error: unexpected response format");
   }
 

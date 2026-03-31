@@ -1,11 +1,13 @@
 import React from "react";
 import {
   View, Text, TouchableOpacity,
-  StyleSheet, StatusBar, ScrollView
+  StyleSheet, StatusBar, ScrollView,Alert
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import type { Item } from "../shared/provider/ItemsContext";
+import { deleteShop } from "../shop-setup/services/shop.services";
+import { useAuth } from "../shared/provider/AuthContextProvider";
 
 export type AppStackParamList = {
    AddStockPage: { item?: Item };
@@ -22,6 +24,31 @@ type Nav = StackNavigationProp<AppStackParamList, "HomeScreen">;
 
 export default function HomeScreen() {
   const navigation = useNavigation<Nav>();
+  const {refetchShop} = useAuth();
+
+  function handleDeleteShop() {
+  Alert.alert(
+    "Delete Shop",
+    "Are you sure? This will permanently delete your shop and all data.",
+    [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteShop();
+            refetchShop(); // Refresh shop data in context
+            Alert.alert("Shop Deleted", "Your shop has been deleted successfully.");
+
+          } catch (err: any) {
+            Alert.alert("Error", err.message || "Failed to delete shop");
+          }
+        },
+      },
+    ]
+  );
+}
 
   return (
     <ScrollView>
@@ -131,6 +158,7 @@ export default function HomeScreen() {
             </Text>
           </View>
           <Text style={[styles.cardArrow, styles.cardArrowDark]}>→</Text>
+
         </TouchableOpacity>
 
 
@@ -139,7 +167,16 @@ export default function HomeScreen() {
 
 
       <Text style={styles.footer}>Tap a card to get started</Text>
+      {/* Delete Shop */}
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDeleteShop}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.deleteButtonText}>🗑 Delete Shop</Text>
+        </TouchableOpacity>
     </View>
+
     </ScrollView>
   );
 }
@@ -210,5 +247,22 @@ const styles = StyleSheet.create({
   footer: {
     textAlign: "center", color: "#333",
     fontSize: 13, marginTop: 32, letterSpacing: 0.5,
+  },
+
+  deleteButton: {
+    marginTop: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#3A0A0A",
+    backgroundColor: "#1A0505",
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "#EF4444",
+    fontSize: 15,
+    fontWeight: "600",
+    letterSpacing: 0.2,
   },
 });

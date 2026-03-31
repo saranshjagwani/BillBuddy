@@ -17,7 +17,7 @@ export function buildHTML(
   const totalAmount = items.reduce((sum, i) => sum + (i.total || 0), 0);
   const hasDiscount = totalDiscount > 0;
 
-  console.log("Aeji Bill Ka no.", billNo,"Yeh he ji");
+  // console.log("Aeji Bill Ka no.", billNo,"Yeh he ji");
 
   const now = new Date();
   const dateFormatted = now.toLocaleDateString("en-IN", {
@@ -539,7 +539,7 @@ export async function generatePDF(
   customer: CustomerInfo,
   items: BillItem[],
 ): Promise<string> {
-  console.log("[PDF] Start generation", { billNo });
+  // console.log("[PDF] Start generation", { billNo });
 
   let tempUri: string | null = null;
 
@@ -595,17 +595,17 @@ export async function generatePDF(
       }
     } catch {
       // Safe fallback: don't fail if info() not supported
-      console.warn("[PDF] Size check skipped");
+      // console.warn("[PDF] Size check skipped");
     }
 
-    console.log("[PDF] Success", { uri: finalFile.uri });
+    // console.log("[PDF] Success", { uri: finalFile.uri });
 
     return finalFile.uri;
   } catch (error) {
-    console.error("[PDF] FAILED", {
-      billNo,
-      error,
-    });
+    // // console.error("[PDF] FAILED", {
+    //   billNo,
+    //   error,
+    // });
 
     // ✅ FIX: cleanup without crashing
     try {
@@ -616,7 +616,7 @@ export async function generatePDF(
         }
       }
     } catch (cleanupError) {
-      console.warn("[PDF] Cleanup failed", cleanupError);
+      // console.warn("[PDF] Cleanup failed", cleanupError);
     }
 
     throw new Error(
@@ -629,7 +629,7 @@ export async function generatePDF(
  * Sharing wrapper (safe + simple)
  */
 export async function sharePDF(uri: string, billNo: string) {
-  console.log("[SHARE] Start", { uri, billNo });
+  // console.log("[SHARE] Start", { uri, billNo });
 
   try {
     if (!uri) {
@@ -654,9 +654,9 @@ export async function sharePDF(uri: string, billNo: string) {
       UTI: "com.adobe.pdf",
     });
 
-    console.log("[SHARE] Success", { billNo });
+    // console.log("[SHARE] Success", { billNo });
   } catch (error) {
-    console.error("[SHARE] FAILED", { billNo, error });
+    // console.error("[SHARE] FAILED", { billNo, error });
 
     throw new Error("PDF share nahi hua. Dobara try karo.");
   }

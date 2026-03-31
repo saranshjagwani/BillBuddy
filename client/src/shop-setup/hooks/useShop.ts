@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchShop } from "../services/shop.services";
-import {useAuth} from "../../shared/provider/AuthContextProvider";
+import { useAuth } from "../../shared/provider/AuthContextProvider";
 
 export default function useShop() {
   const [shop, setShop] = useState(null);
@@ -34,7 +34,7 @@ export default function useShop() {
           await AsyncStorage.setItem("shop", JSON.stringify(data.shop));
         }
       } catch (err) {
-        console.error("Error fetching shop:", err);
+        // console.error("Error fetching shop:", err);
       } finally {
         setLoading(false);
       }

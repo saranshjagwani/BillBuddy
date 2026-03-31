@@ -1,14 +1,25 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  ReactNode,
+} from "react";
 import { getApp } from "@react-native-firebase/app";
-import { getAuth, onAuthStateChanged, FirebaseAuthTypes } from "@react-native-firebase/auth";
+import {
+  getAuth,
+  onAuthStateChanged,
+  FirebaseAuthTypes,
+} from "@react-native-firebase/auth";
 import { fetchShop } from "../../shop-setup/services/shop.services";
 
-export type ShopDetails ={
-  shopId:string,
-  shopName:string,
-  phoneNumber: string,
-  category?: string
-}
+export type ShopDetails = {
+  shopId: string;
+  shopName: string;
+  phoneNumber: string;
+  category?: string;
+};
 
 // 1. Define the Global Shape
 interface AuthContextType {
@@ -19,40 +30,38 @@ interface AuthContextType {
   setIsShopSetupComplete: (value: boolean) => void;
   checkingShop: boolean;
   refetchShop: () => Promise<void>;
-  shopData : ShopDetails | null
+  shopData: ShopDetails | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const auth = getAuth(getApp());
-
-
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [isShopSetupComplete, setIsShopSetupComplete] = useState(false);
   const [checkingShop, setCheckingShop] = useState(false);
-  const [shopData,setShopData] = useState<ShopDetails | null>(null);
+  const [shopData, setShopData] = useState<ShopDetails | null>(null);
 
   // Function to re-verify with Database
   const refetchShop = useCallback(async () => {
-    console.log("[AuthContext] Refetching shop status...");
+    // console.log("[AuthContext] Refetching shop status...");
     if (!auth.currentUser) return;
 
     setCheckingShop(true);
 
     try {
       const data = await fetchShop();
-      console.log("Data From The Auth pr", data);
+      // console.log("Data From The Auth pr", data);
       setIsShopSetupComplete(!!data?.shop);
       setShopData({
-          shopId:data?.shop?.shopId,
-          shopName:data?.shop?.shopName,
-          phoneNumber:data?.shop?.phoneNumber,
-          category:data?.shop?.category
-        })
+        shopId: data?.shop?.shopId,
+        shopName: data?.shop?.shopName,
+        phoneNumber: data?.shop?.phoneNumber,
+        category: data?.shop?.category,
+      });
     } catch (error) {
-      console.error("[AuthContext] Refetch failed:", error);
+      // console.error("[AuthContext] Refetch failed:", error);
     } finally {
       setCheckingShop(false);
     }
@@ -72,14 +81,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setCheckingShop(true);
       try {
         const data = await fetchShop();
-        console.log("Data From The Auth pr", data);
+        // console.log("Data From The Auth pr", data);
         setIsShopSetupComplete(!!data?.shop);
         setShopData({
-          shopId:data?.shop?.shopId,
-          shopName:data?.shop?.shopName,
-          phoneNumber:data?.shop?.phoneNumber,
-          category:data?.shop?.category
-        })
+          shopId: data?.shop?.shopId,
+          shopName: data?.shop?.shopName,
+          phoneNumber: data?.shop?.phoneNumber,
+          category: data?.shop?.category,
+        });
       } finally {
         setInitializing(false);
         setCheckingShop(false);
@@ -98,7 +107,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isShopSetupComplete,
         setIsShopSetupComplete,
         checkingShop,
-        refetchShop
+        refetchShop,
       }}
     >
       {children}

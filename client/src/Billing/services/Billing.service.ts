@@ -23,14 +23,14 @@ export async function generateBill(
   items: BillItem[],
 ): Promise<any> {
   const token = await getAuthToken();
-  console.log("oji input ji aya hai ji", customer, items);
+  // console.log("oji input ji aya hai ji", customer, items);
 
   const payload = {
     customerName: customer.name,
     customerPhone: customer.phone,
     items,
   };
-  console.log("oji payload ji lelo ji", payload);
+  // console.log("oji payload ji lelo ji", payload);
 
   const response = await fetch(`${API_URL}/create-bill`, {
     method: "POST",

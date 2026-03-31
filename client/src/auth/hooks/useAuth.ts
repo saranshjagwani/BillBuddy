@@ -49,19 +49,19 @@
 //   const [checkingShop, setCheckingShop] = useState(false);
 
 //   const refetchShop = useCallback(async () => {
-//     console.log("[useAuth] Refetching shop data...");
+//     // console.log("[useAuth] Refetching shop data...");
 //     if (!user) return;
 
 //     try {
 //       const data = await fetchShop();
 
-//       console.log("Refetch shop:", data);
+//       // console.log("Refetch shop:", data);
 
-//       console.log("Data is in ref", !!data?.shop);
+//       // console.log("Data is in ref", !!data?.shop);
 
 //       setIsShopSetupComplete(!!data?.shop);
 //     } catch (error) {
-//       console.error("Refetch failed:", error);
+//       // console.error("Refetch failed:", error);
 //       setIsShopSetupComplete(false);
 //     } finally {
 //       setCheckingShop(false);
@@ -78,7 +78,7 @@
 //      * - App always stays in sync with auth state
 //      */
 //     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-//       console.log("Auth hook: authentication state changed", firebaseUser);
+//       // console.log("Auth hook: authentication state changed", firebaseUser);
 
 //       if (!firebaseUser) {
 //         setUser(null);
@@ -93,7 +93,7 @@
 //         const data = await fetchShop();
 //         setIsShopSetupComplete(!!data?.shop);
 //       } catch (error) {
-//         console.error("Auth hook: failed to fetch shop", error);
+//         // console.error("Auth hook: failed to fetch shop", error);
 //         setIsShopSetupComplete(false);
 //       } finally {
 //         setInitializing(false);

@@ -123,7 +123,6 @@ export async function undoBill(req: express.Request, res: express.Response) {
           existingItems[item.itemId].quantity -= item.quantity;
           existingItems[item.itemId].revenue -= item.finalPrice;
 
-
           if (existingItems[item.itemId].quantity <= 0) {
             delete existingItems[item.itemId];
           }
@@ -144,7 +143,7 @@ export async function undoBill(req: express.Request, res: express.Response) {
       .status(200)
       .json({ success: true, message: "Bill undone successfully" });
   } catch (error: any) {
-    console.error("Error undoing bill:", error);
+    // console.error("Error undoing bill:", error);
 
     if (
       error.message?.startsWith("Cannot undo") ||

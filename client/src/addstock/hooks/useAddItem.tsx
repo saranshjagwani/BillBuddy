@@ -14,7 +14,7 @@ export const DEFAULT_UNITS_BY_CATEGORY: Record<string, string[]> = {
 
   "Electronics / Mobile Shop": ["Piece", "Box"],
 
-  "Dairy / Bakery": ["Litre", "Piece", "Kg","Pound"],
+  "Dairy / Bakery": ["Litre", "Piece", "Kg", "Pound"],
 
   "Hardware Store": ["Piece", "Kg", "Metre"],
 
@@ -37,9 +37,9 @@ export default function useAddItem() {
   const { shopData } = useAuth();
 
   const units = useMemo(() => {
-    console.log("ShopData units ke lie", shopData);
+    // console.log("ShopData units ke lie", shopData);
     if (!shopData?.category) {
-      console.log("Shop category not found");
+      // console.log("Shop category not found");
       return ["Piece"];
     }
 
@@ -47,7 +47,7 @@ export default function useAddItem() {
   }, [shopData]);
 
   const shopId = shopData?.shopId || null;
-  console.log("Shop ID in useAddItem:", shopId);
+  // console.log("Shop ID in useAddItem:", shopId);
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -89,7 +89,7 @@ export default function useAddItem() {
     if (!validate()) return;
 
     if (!shopId) {
-      console.error("Shop not loaded yet");
+      // console.error("Shop not loaded yet");
       return;
     }
 
@@ -104,7 +104,7 @@ export default function useAddItem() {
         currentStock,
       };
 
-      console.log("Creating item:", payload);
+      // console.log("Creating item:", payload);
 
       await createItem(payload);
 
@@ -116,7 +116,7 @@ export default function useAddItem() {
       setSellingPrice("");
       setCurrentStock("");
     } catch (err) {
-      console.error("AddItem error:", err);
+      // console.error("AddItem error:", err);
       showToast("error", "Failed to add item. Please try again.");
     } finally {
       setLoading(false);
