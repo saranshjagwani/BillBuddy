@@ -31,22 +31,9 @@ app.put("/items/:itemId", updateItem);
 app.delete("/items/:itemId", deleteItem);
 app.delete("/delete-shop", deleteShop);
 
-
 app.listen(3000, () => {
-  // console.log("✅ Server started");
-  process.on("exit", (code) => {
-    // console.log("❌ Process exiting with code:", code);
-  });
-
-  process.on("uncaughtException", (err) => {
-    // console.error("🔥 UNCAUGHT EXCEPTION:", err);
-  });
-
-  process.on("unhandledRejection", (reason) => {
-    // console.error("🔥 UNHANDLED REJECTION:", reason);
-  });
-
   app.get("/", (req, res) => {
+    console.log("Running BillBuddy backend...");
     res.send("BillBuddy backend is live 🚀");
   });
 });
